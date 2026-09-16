@@ -12,6 +12,9 @@ import {
   SignOutIcon,
   SquaresFourIcon,
 } from "@phosphor-icons/react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { AuthApi } from "../../lib/api/auth";
 import { ROLE_LABELS, User } from "../lib/data";
 
 interface NavItem {
@@ -31,8 +34,21 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ user, collapsed, unreadCount, hasAdmin, onToggle }: SidebarProps) {
+  const router = useRouter();
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const expanded = !collapsed;
   const CaretIcon = collapsed ? CaretRightIcon : CaretLeftIcon;
+
+  async function handleSignOut() {
+    setIsSigningOut(true);
+    try {
+      await AuthApi.logout();
+      router.push("/login");
+      router.refresh();
+    } finally {
+      setIsSigningOut(false);
+    }
+  }
 
   const navItems: NavItem[] = [
     { key: "dashboard", icon: SquaresFourIcon, label: "Dashboard", active: true },
@@ -128,8 +144,12 @@ export default function Sidebar({ user, collapsed, unreadCount, hasAdmin, onTogg
           )}
         </div>
         {expanded && (
-          <button className="mt-2 flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-muted">
-            <SignOutIcon size={13} /> Sair
+          <button
+            onClick={handleSignOut}
+            disabled={isSigningOut}
+            className="mt-2 flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-muted disabled:cursor-default disabled:opacity-60"
+          >
+            <SignOutIcon size={13} /> {isSigningOut ? "Saindo…" : "Sair"}
           </button>
         )}
       </div>

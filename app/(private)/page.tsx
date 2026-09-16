@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo, useState, useSyncExternalStore } from "react";
-import ExamTable from "./components/exam-table";
-import KpiCard from "./components/kpi-card";
-import PanelCard from "./components/panel-card";
-import Sidebar from "./components/sidebar";
-import { ROLES, ROLE_LABELS, Role } from "./lib/data";
-import { buildDashboardView } from "./lib/dashboard-view";
+import ExamTable from "../components/exam-table";
+import KpiCard from "../components/kpi-card";
+import PanelCard from "../components/panel-card";
+import Sidebar from "../components/sidebar";
+import { ROLES, ROLE_LABELS, Role } from "../lib/data";
+import { buildDashboardView } from "../lib/dashboard-view";
 
 const emptySubscribe = () => () => {};
 
