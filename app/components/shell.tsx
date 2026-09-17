@@ -44,7 +44,7 @@ export default function Shell({
         user={toUser(me)}
         collapsed={collapsed}
         unreadCount={unreadCount}
-        hasAdmin={me.role === "coordenador" || me.role === "supervisor"}
+        hasAdmin={me.role === "admin"}
         onToggle={() => setCollapsed((c) => !c)}
       />
       <main className="flex min-w-0 flex-1 flex-col overflow-hidden">{children}</main>

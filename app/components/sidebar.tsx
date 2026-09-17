@@ -129,13 +129,18 @@ export default function Sidebar({ user, collapsed, unreadCount, hasAdmin, onTogg
             {expanded && (
               <p className="mb-2 mt-5 px-3 text-xs font-semibold uppercase tracking-wider text-muted">Admin</p>
             )}
-            <button
+            <Link
+              href="/admin"
               title="Administração"
-              className="mt-2 flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-muted"
+              className={`mt-2 flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left no-underline ${
+                isActive(pathname, "/admin")
+                  ? "bg-primary-soft font-medium text-primary"
+                  : "text-muted"
+              }`}
             >
               <GearIcon size={18} className="shrink-0" />
               {expanded && <span className="whitespace-nowrap text-sm">Administração</span>}
-            </button>
+            </Link>
           </div>
         )}
       </nav>
