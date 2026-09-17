@@ -1,22 +1,15 @@
-export type Role = "professor" | "supervisor" | "secretaria" | "coordenador";
+/**
+ * Tipos da UI derivados dos DTOs da API (E2.2) + mocks que ainda alimentam o dashboard.
+ *
+ * Status não tem mais tabela de cor/rótulo aqui: cor e label vêm de `workflow_statuses`
+ * dentro do próprio `status` do documento (ver `badgeFromStatus`). Os mocks abaixo saem
+ * quando o dashboard passar a ler a API (E2.4/E2.5).
+ */
+import type { Priority, UserSummary } from "../../lib/api/dto/documentSchema";
+import type { WorkflowStatus } from "../../lib/api/dto/workflowSchema";
+import { roleSchema, type Role } from "../../lib/api/dto/authSchema";
 
-export type ExamStatus =
-  | "rascunho"
-  | "aguardando_revisao"
-  | "em_revisao"
-  | "aprovado"
-  | "reprovado"
-  | "em_impressao"
-  | "concluido";
-
-export type Priority = "alta" | "media" | "baixa";
-
-export type RecordStatus =
-  | "rascunho"
-  | "aguardando_validacao"
-  | "validado"
-  | "homologado"
-  | "arquivado";
+export type { Priority, Role, UserSummary, WorkflowStatus };
 
 export type NotificationType = "info" | "success" | "warning" | "error";
 
@@ -36,7 +29,7 @@ export interface Exam {
   class: string;
   applicationDate: string;
   priority: Priority;
-  status: ExamStatus;
+  status: WorkflowStatus;
   professorId: string;
   professorName: string;
 }
@@ -48,7 +41,7 @@ export interface EvaluationRecord {
   professor: string;
   date: string;
   evaluationType: string;
-  status: RecordStatus;
+  status: WorkflowStatus;
 }
 
 export interface AppNotification {
@@ -66,6 +59,54 @@ export interface BadgeStyle {
   bg: string;
 }
 
+/**
+ * Badge a partir do status da API. O banco guarda só a cor sólida (texto); o fundo é essa
+ * mesma cor a 12% — evita uma segunda coluna e funciona para qualquer status que o admin
+ * cadastrar no E4.
+ */
+export function badgeFromStatus(status: WorkflowStatus): BadgeStyle {
+  return { label: status.label, color: status.color, bg: `${status.color}1F` };
+}
+
+// --- mocks (saem no E2.4/E2.5) ---
+
+/** Espelha o seed de `workflow_statuses` para os mocks abaixo terem a forma real do DTO. */
+function mockStatus(
+  key: string,
+  label: string,
+  position: number,
+  color: string,
+  flags: { initial?: boolean; finalStatus?: boolean } = {}
+): WorkflowStatus {
+  return {
+    id: position,
+    key,
+    label,
+    position,
+    color,
+    initial: flags.initial ?? false,
+    finalStatus: flags.finalStatus ?? false,
+  };
+}
+
+const EXAM_STATUS = {
+  rascunho: mockStatus("rascunho", "Rascunho", 1, "#6B7280", { initial: true }),
+  aguardando_revisao: mockStatus("aguardando_revisao", "Aguardando Revisão", 2, "#F59E0B"),
+  em_revisao: mockStatus("em_revisao", "Em Revisão", 3, "#3B82F6"),
+  aprovado: mockStatus("aprovado", "Aprovado", 4, "#10B981"),
+  reprovado: mockStatus("reprovado", "Reprovado", 5, "#EF4444"),
+  em_impressao: mockStatus("em_impressao", "Em Impressão", 6, "#8B5CF6"),
+  concluido: mockStatus("concluido", "Concluído", 7, "#059669", { finalStatus: true }),
+} as const;
+
+const RECORD_STATUS = {
+  rascunho: mockStatus("rascunho", "Rascunho", 1, "#6B7280", { initial: true }),
+  aguardando_validacao: mockStatus("aguardando_validacao", "Aguardando Validação", 2, "#F59E0B"),
+  validado: mockStatus("validado", "Validado", 3, "#3B82F6"),
+  homologado: mockStatus("homologado", "Homologado", 4, "#10B981"),
+  arquivado: mockStatus("arquivado", "Arquivado", 5, "#64748B", { finalStatus: true }),
+} as const;
+
 export const USERS: User[] = [
   { id: "u1", name: "Ana Carvalho", email: "ana.carvalho@inst.edu.br", role: "professor", initials: "AC", avatarColor: "#3B82F6" },
   { id: "u2", name: "Bruno Ferreira", email: "bruno.ferreira@inst.edu.br", role: "professor", initials: "BF", avatarColor: "#8B5CF6" },
@@ -76,21 +117,21 @@ export const USERS: User[] = [
 ];
 
 export const EXAMS: Exam[] = [
-  { id: "e1", title: "Prova Bimestral — Álgebra Linear", discipline: "Matemática", class: "3A", applicationDate: "2026-05-10", priority: "alta", status: "aguardando_revisao", professorId: "u1", professorName: "Ana Carvalho" },
-  { id: "e2", title: "Avaliação Trimestral — Interpretação de Texto", discipline: "Português", class: "2B", applicationDate: "2026-05-08", priority: "media", status: "em_revisao", professorId: "u2", professorName: "Bruno Ferreira" },
-  { id: "e3", title: "Teste Rápido — Revolução Industrial", discipline: "História", class: "1A", applicationDate: "2026-04-30", priority: "baixa", status: "reprovado", professorId: "u1", professorName: "Ana Carvalho" },
-  { id: "e4", title: "Prova Final — Termodinâmica", discipline: "Física", class: "3B", applicationDate: "2026-05-15", priority: "alta", status: "aprovado", professorId: "u3", professorName: "Carlos Mendes" },
-  { id: "e5", title: "Avaliação Prática — Soluções Químicas", discipline: "Química", class: "2A", applicationDate: "2026-05-06", priority: "media", status: "em_impressao", professorId: "u3", professorName: "Carlos Mendes" },
-  { id: "e6", title: "Prova Bimestral — Genética e Hereditariedade", discipline: "Biologia", class: "3A", applicationDate: "2026-05-12", priority: "alta", status: "concluido", professorId: "u2", professorName: "Bruno Ferreira" },
-  { id: "e7", title: "Teste de Vocabulário — Present Perfect", discipline: "Inglês", class: "1B", applicationDate: "2026-05-02", priority: "baixa", status: "rascunho", professorId: "u1", professorName: "Ana Carvalho" },
-  { id: "e8", title: "Avaliação — Geopolítica Contemporânea", discipline: "Geografia", class: "2A", applicationDate: "2026-05-07", priority: "media", status: "aguardando_revisao", professorId: "u2", professorName: "Bruno Ferreira" },
+  { id: "e1", title: "Prova Bimestral — Álgebra Linear", discipline: "Matemática", class: "3A", applicationDate: "2026-05-10", priority: "alta", status: EXAM_STATUS.aguardando_revisao, professorId: "u1", professorName: "Ana Carvalho" },
+  { id: "e2", title: "Avaliação Trimestral — Interpretação de Texto", discipline: "Português", class: "2B", applicationDate: "2026-05-08", priority: "media", status: EXAM_STATUS.em_revisao, professorId: "u2", professorName: "Bruno Ferreira" },
+  { id: "e3", title: "Teste Rápido — Revolução Industrial", discipline: "História", class: "1A", applicationDate: "2026-04-30", priority: "baixa", status: EXAM_STATUS.reprovado, professorId: "u1", professorName: "Ana Carvalho" },
+  { id: "e4", title: "Prova Final — Termodinâmica", discipline: "Física", class: "3B", applicationDate: "2026-05-15", priority: "alta", status: EXAM_STATUS.aprovado, professorId: "u3", professorName: "Carlos Mendes" },
+  { id: "e5", title: "Avaliação Prática — Soluções Químicas", discipline: "Química", class: "2A", applicationDate: "2026-05-06", priority: "media", status: EXAM_STATUS.em_impressao, professorId: "u3", professorName: "Carlos Mendes" },
+  { id: "e6", title: "Prova Bimestral — Genética e Hereditariedade", discipline: "Biologia", class: "3A", applicationDate: "2026-05-12", priority: "alta", status: EXAM_STATUS.concluido, professorId: "u2", professorName: "Bruno Ferreira" },
+  { id: "e7", title: "Teste de Vocabulário — Present Perfect", discipline: "Inglês", class: "1B", applicationDate: "2026-05-02", priority: "baixa", status: EXAM_STATUS.rascunho, professorId: "u1", professorName: "Ana Carvalho" },
+  { id: "e8", title: "Avaliação — Geopolítica Contemporânea", discipline: "Geografia", class: "2A", applicationDate: "2026-05-07", priority: "media", status: EXAM_STATUS.aguardando_revisao, professorId: "u2", professorName: "Bruno Ferreira" },
 ];
 
 export const RECORDS: EvaluationRecord[] = [
-  { id: "r1", discipline: "Matemática", class: "3A", professor: "Ana Carvalho", date: "2026-04-20", evaluationType: "Prova Bimestral", status: "aguardando_validacao" },
-  { id: "r2", discipline: "Física", class: "3B", professor: "Carlos Mendes", date: "2026-04-18", evaluationType: "Avaliação Trimestral", status: "validado" },
-  { id: "r3", discipline: "Biologia", class: "3A", professor: "Bruno Ferreira", date: "2026-04-15", evaluationType: "Prova Bimestral", status: "homologado" },
-  { id: "r4", discipline: "Química", class: "2A", professor: "Carlos Mendes", date: "2026-04-10", evaluationType: "Prova Prática", status: "arquivado" },
+  { id: "r1", discipline: "Matemática", class: "3A", professor: "Ana Carvalho", date: "2026-04-20", evaluationType: "Prova Bimestral", status: RECORD_STATUS.aguardando_validacao },
+  { id: "r2", discipline: "Física", class: "3B", professor: "Carlos Mendes", date: "2026-04-18", evaluationType: "Avaliação Trimestral", status: RECORD_STATUS.validado },
+  { id: "r3", discipline: "Biologia", class: "3A", professor: "Bruno Ferreira", date: "2026-04-15", evaluationType: "Prova Bimestral", status: RECORD_STATUS.homologado },
+  { id: "r4", discipline: "Química", class: "2A", professor: "Carlos Mendes", date: "2026-04-10", evaluationType: "Prova Prática", status: RECORD_STATUS.arquivado },
 ];
 
 export const NOTIFICATIONS: AppNotification[] = [
@@ -104,15 +145,7 @@ export const NOTIFICATIONS: AppNotification[] = [
   { id: "n8", message: 'Nova prova aguardando revisão: "Avaliação — Geopolítica Contemporânea" de Bruno Ferreira.', type: "warning", read: false, createdAt: "2026-04-24 11:00", forRoles: ["supervisor"] },
 ];
 
-export const STATUS_CONFIG: Record<ExamStatus, BadgeStyle> = {
-  rascunho: { label: "Rascunho", color: "#6B7280", bg: "#F3F4F6" },
-  aguardando_revisao: { label: "Aguardando Revisão", color: "#F59E0B", bg: "#FEF3C7" },
-  em_revisao: { label: "Em Revisão", color: "#3B82F6", bg: "#EFF6FF" },
-  aprovado: { label: "Aprovado", color: "#10B981", bg: "#ECFDF5" },
-  reprovado: { label: "Reprovado", color: "#EF4444", bg: "#FEE2E2" },
-  em_impressao: { label: "Em Impressão", color: "#8B5CF6", bg: "#F5F3FF" },
-  concluido: { label: "Concluído", color: "#10B981", bg: "#D1FAE5" },
-};
+// --- configs visuais (sem equivalente no banco) ---
 
 export const PRIORITY_CONFIG: Record<Priority, BadgeStyle> = {
   alta: { label: "Alta", color: "#EF4444", bg: "#FEE2E2" },
@@ -120,19 +153,12 @@ export const PRIORITY_CONFIG: Record<Priority, BadgeStyle> = {
   baixa: { label: "Baixa", color: "#10B981", bg: "#ECFDF5" },
 };
 
-export const RECORD_STATUS_CONFIG: Record<RecordStatus, BadgeStyle> = {
-  rascunho: { label: "Rascunho", color: "#6B7280", bg: "#F3F4F6" },
-  aguardando_validacao: { label: "Aguard. Validação", color: "#F59E0B", bg: "#FEF3C7" },
-  validado: { label: "Validado", color: "#3B82F6", bg: "#EFF6FF" },
-  homologado: { label: "Homologado", color: "#10B981", bg: "#ECFDF5" },
-  arquivado: { label: "Arquivado", color: "#6B7280", bg: "#F3F4F6" },
-};
-
 export const ROLE_LABELS: Record<Role, string> = {
   professor: "Professor",
   supervisor: "Supervisor",
   secretaria: "Secretaria",
   coordenador: "Coordenador",
+  admin: "Administrador",
 };
 
 export const NOTIF_DOT: Record<NotificationType, string> = {
@@ -142,7 +168,8 @@ export const NOTIF_DOT: Record<NotificationType, string> = {
   error: "#993C1D",
 };
 
-export const ROLES: Role[] = ["professor", "supervisor", "secretaria", "coordenador"];
+/** Papéis que o seletor do dashboard oferece — `admin` fica fora até o E4. */
+export const ROLES: Role[] = roleSchema.options.filter((r) => r !== "admin");
 
 export function formatDate(iso: string): string {
   const [y, m, d] = iso.split("-");

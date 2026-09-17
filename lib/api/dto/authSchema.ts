@@ -1,14 +1,22 @@
 import { z } from "zod";
 
-/**
- * Contrato de `MeResponse` retornado por register/login/refresh/me.
- * Os valores de `role` espelham o tipo `Role` de `app/lib/data.ts`.
- */
+/** Espelha o enum `Role` do backend — `admin` incluso (executa qualquer transição, E4). */
+export const roleSchema = z.enum([
+  "professor",
+  "supervisor",
+  "secretaria",
+  "coordenador",
+  "admin",
+]);
+
+export type Role = z.infer<typeof roleSchema>;
+
+/** Contrato de `MeResponse` retornado por register/login/refresh/me. */
 export const meResponseSchema = z.object({
   id: z.number(),
   name: z.string(),
   email: z.string(),
-  role: z.enum(["professor", "supervisor", "secretaria", "coordenador"]),
+  role: roleSchema,
 });
 
 export type MeResponse = z.infer<typeof meResponseSchema>;

@@ -19,11 +19,10 @@ import {
   NOTIF_DOT,
   PRIORITY_CONFIG,
   RECORDS,
-  RECORD_STATUS_CONFIG,
   Role,
-  STATUS_CONFIG,
   USERS,
   User,
+  badgeFromStatus,
   formatDate,
 } from "./data";
 
@@ -101,7 +100,7 @@ const ITEM_DEFAULTS = {
 };
 
 function examItem(e: Exam, overrides: Partial<PanelItemView> = {}): PanelItemView {
-  const s = STATUS_CONFIG[e.status];
+  const s = badgeFromStatus(e.status);
   return {
     ...ITEM_DEFAULTS,
     key: e.id,
@@ -112,7 +111,7 @@ function examItem(e: Exam, overrides: Partial<PanelItemView> = {}): PanelItemVie
 }
 
 function recordItem(r: EvaluationRecord, overrides: Partial<PanelItemView> = {}): PanelItemView {
-  const s = RECORD_STATUS_CONFIG[r.status];
+  const s = badgeFromStatus(r.status);
   return {
     ...ITEM_DEFAULTS,
     key: r.id,
@@ -132,13 +131,13 @@ export function buildDashboardView(role: Role): DashboardView {
 
   const myExams = EXAMS.filter((e) => e.professorId === user.id);
   const pendingSupervisor = EXAMS.filter(
-    (e) => e.status === "aguardando_revisao" || e.status === "em_revisao"
+    (e) => e.status.key === "aguardando_revisao" || e.status.key === "em_revisao"
   );
-  const printQueue = EXAMS.filter((e) => e.status === "aprovado");
-  const printingNow = EXAMS.filter((e) => e.status === "em_impressao");
-  const pendingRecords = RECORDS.filter((r) => r.status === "aguardando_validacao");
-  const validatedRecords = RECORDS.filter((r) => r.status === "validado");
-  const homologated = RECORDS.filter((r) => r.status === "homologado");
+  const printQueue = EXAMS.filter((e) => e.status.key === "aprovado");
+  const printingNow = EXAMS.filter((e) => e.status.key === "em_impressao");
+  const pendingRecords = RECORDS.filter((r) => r.status.key === "aguardando_validacao");
+  const validatedRecords = RECORDS.filter((r) => r.status.key === "validado");
+  const homologated = RECORDS.filter((r) => r.status.key === "homologado");
 
   const myNotifs = NOTIFICATIONS.filter((n) => n.forRoles.includes(role));
   const unread = myNotifs.filter((n) => !n.read);
@@ -150,14 +149,14 @@ export function buildDashboardView(role: Role): DashboardView {
 
   if (role === "professor") {
     kpis = [
-      kpi("Rascunhos", myExams.filter((e) => e.status === "rascunho").length, FileTextIcon, "#717182", "#ececf0"),
-      kpi("Aguardando Revisão", myExams.filter((e) => e.status === "aguardando_revisao").length, ClockIcon, "#BA7517", "#FEF3DC"),
-      kpi("Aprovadas", myExams.filter((e) => ["aprovado", "em_impressao", "concluido"].includes(e.status)).length, CheckCircleIcon, "#0F6E56", "#E6F4F0"),
-      kpi("Reprovadas", myExams.filter((e) => e.status === "reprovado").length, XCircleIcon, "#993C1D", "#FCEAE4"),
+      kpi("Rascunhos", myExams.filter((e) => e.status.key === "rascunho").length, FileTextIcon, "#717182", "#ececf0"),
+      kpi("Aguardando Revisão", myExams.filter((e) => e.status.key === "aguardando_revisao").length, ClockIcon, "#BA7517", "#FEF3DC"),
+      kpi("Aprovadas", myExams.filter((e) => ["aprovado", "em_impressao", "concluido"].includes(e.status.key)).length, CheckCircleIcon, "#0F6E56", "#E6F4F0"),
+      kpi("Reprovadas", myExams.filter((e) => e.status.key === "reprovado").length, XCircleIcon, "#993C1D", "#FCEAE4"),
     ];
     headerButton = { label: "Nova Prova", icon: PlusIcon };
 
-    const rejected = myExams.filter((e) => e.status === "reprovado");
+    const rejected = myExams.filter((e) => e.status.key === "reprovado");
     panels = [
       {
         key: "pending-actions",
@@ -198,7 +197,7 @@ export function buildDashboardView(role: Role): DashboardView {
     ];
 
     examRows = myExams.map((e) => {
-      const s = STATUS_CONFIG[e.status];
+      const s = badgeFromStatus(e.status);
       const p = PRIORITY_CONFIG[e.priority];
       return {
         key: e.id,
@@ -214,8 +213,8 @@ export function buildDashboardView(role: Role): DashboardView {
 
   if (role === "supervisor") {
     kpis = [
-      kpi("Provas para Revisar", pendingSupervisor.filter((e) => e.status === "aguardando_revisao").length, ClockIcon, "#BA7517", "#FEF3DC"),
-      kpi("Em Revisão", pendingSupervisor.filter((e) => e.status === "em_revisao").length, FileTextIcon, "#185FA5", "#EEF4FB"),
+      kpi("Provas para Revisar", pendingSupervisor.filter((e) => e.status.key === "aguardando_revisao").length, ClockIcon, "#BA7517", "#FEF3DC"),
+      kpi("Em Revisão", pendingSupervisor.filter((e) => e.status.key === "em_revisao").length, FileTextIcon, "#185FA5", "#EEF4FB"),
       kpi("Atas para Validar", pendingRecords.length, ClipboardTextIcon, "#6B45C8", "#F0EBFD"),
       kpi("Aprovadas Hoje", printQueue.length, CheckCircleIcon, "#0F6E56", "#E6F4F0"),
     ];
@@ -246,7 +245,7 @@ export function buildDashboardView(role: Role): DashboardView {
       kpi("Fila de Impressão", printQueue.length, PrinterIcon, "#185FA5", "#EEF4FB"),
       kpi("Imprimindo Agora", printingNow.length, ClockIcon, "#6B45C8", "#F0EBFD"),
       kpi("Para Arquivar", homologated.length, ArchiveIcon, "#BA7517", "#FEF3DC"),
-      kpi("Concluídas Hoje", EXAMS.filter((e) => e.status === "concluido").length, CheckCircleIcon, "#0F6E56", "#E6F4F0"),
+      kpi("Concluídas Hoje", EXAMS.filter((e) => e.status.key === "concluido").length, CheckCircleIcon, "#0F6E56", "#E6F4F0"),
     ];
     panels = [
       {
@@ -281,7 +280,7 @@ export function buildDashboardView(role: Role): DashboardView {
     kpis = [
       kpi("Atas para Homologar", validatedRecords.length, ClipboardTextIcon, "#BA7517", "#FEF3DC"),
       kpi("Homologadas", homologated.length, CheckCircleIcon, "#0F6E56", "#E6F4F0"),
-      kpi("Arquivadas", RECORDS.filter((r) => r.status === "arquivado").length, ArchiveIcon, "#717182", "#ececf0"),
+      kpi("Arquivadas", RECORDS.filter((r) => r.status.key === "arquivado").length, ArchiveIcon, "#717182", "#ececf0"),
       kpi("Total de Provas", EXAMS.length, BookOpenIcon, "#185FA5", "#EEF4FB"),
     ];
     panels = [

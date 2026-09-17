@@ -12,7 +12,8 @@ import {
   SignOutIcon,
   SquaresFourIcon,
 } from "@phosphor-icons/react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { AuthApi } from "../../lib/api/auth";
 import { ROLE_LABELS, User } from "../lib/data";
@@ -21,8 +22,13 @@ interface NavItem {
   key: string;
   icon: Icon;
   label: string;
-  active?: boolean;
+  href: string;
   badge?: number;
+}
+
+/** "/" só casa exato; as demais casam a própria rota e as filhas (ex.: /provas/nova). */
+function isActive(pathname: string, href: string): boolean {
+  return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
 interface SidebarProps {
@@ -35,6 +41,7 @@ interface SidebarProps {
 
 export default function Sidebar({ user, collapsed, unreadCount, hasAdmin, onToggle }: SidebarProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const expanded = !collapsed;
   const CaretIcon = collapsed ? CaretRightIcon : CaretLeftIcon;
@@ -50,11 +57,13 @@ export default function Sidebar({ user, collapsed, unreadCount, hasAdmin, onTogg
     }
   }
 
+  // Atas (E5) ainda não tem rota; fica apontando para o dashboard até o épico chegar,
+  // em vez de virar link quebrado.
   const navItems: NavItem[] = [
-    { key: "dashboard", icon: SquaresFourIcon, label: "Dashboard", active: true },
-    { key: "provas", icon: ColumnsIcon, label: "Gestão de Provas" },
-    { key: "atas", icon: FileTextIcon, label: "Gestão de Atas" },
-    { key: "notificacoes", icon: BellIcon, label: "Notificações", badge: unreadCount },
+    { key: "dashboard", icon: SquaresFourIcon, label: "Dashboard", href: "/" },
+    { key: "provas", icon: ColumnsIcon, label: "Gestão de Provas", href: "/provas" },
+    { key: "atas", icon: FileTextIcon, label: "Gestão de Atas", href: "/" },
+    { key: "notificacoes", icon: BellIcon, label: "Notificações", href: "/notificacoes", badge: unreadCount },
   ];
 
   return (
@@ -88,11 +97,14 @@ export default function Sidebar({ user, collapsed, unreadCount, hasAdmin, onTogg
         )}
         <div className="flex flex-col gap-0.5">
           {navItems.map((item) => (
-            <button
+            <Link
               key={item.key}
+              href={item.href}
               title={item.label}
-              className={`relative flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left ${
-                item.active ? "bg-primary-soft font-medium text-primary" : "text-muted"
+              className={`relative flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left no-underline ${
+                isActive(pathname, item.href)
+                  ? "bg-primary-soft font-medium text-primary"
+                  : "text-muted"
               }`}
             >
               <item.icon size={18} className="shrink-0" />
@@ -108,7 +120,7 @@ export default function Sidebar({ user, collapsed, unreadCount, hasAdmin, onTogg
                   {item.badge > 9 ? "9+" : item.badge}
                 </span>
               )}
-            </button>
+            </Link>
           ))}
         </div>
 
