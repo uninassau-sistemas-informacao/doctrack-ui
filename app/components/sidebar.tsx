@@ -34,12 +34,11 @@ function isActive(pathname: string, href: string): boolean {
 
 /**
  * Tipos com tela própria (E4.5): entram no menu com o rótulo e a rota deles, não com o
- * nome cadastrado no banco nem com o Kanban genérico. Atas ainda não tem rota (E5), então
- * aponta para o dashboard em vez de virar link quebrado — mesmo critério de antes.
+ * nome cadastrado no banco nem com o Kanban genérico.
  */
 const FIXED_TYPES: Record<string, { icon: Icon; label: string; href: string }> = {
   prova: { icon: ColumnsIcon, label: "Gestão de Provas", href: "/provas" },
-  ata: { icon: FileTextIcon, label: "Gestão de Atas", href: "/" },
+  ata: { icon: FileTextIcon, label: "Gestão de Atas", href: "/atas" },
 };
 
 interface SidebarProps {
