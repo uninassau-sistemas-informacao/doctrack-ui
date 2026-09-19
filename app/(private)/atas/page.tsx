@@ -181,6 +181,9 @@ function AtasBoard() {
   );
 }
 
+/** Chave do detalhe da ata aberta — declarada uma vez para a query e a invalidação não divergirem. */
+const RECORD_DETAIL_KEY = (documentId: number) => ["records", "detail", documentId] as const;
+
 /**
  * Painel da ata: o detalhe genérico (histórico e botões de transição) e, abaixo, o
  * lançamento de notas. As ações não são filtradas por papel aqui — `DocumentDetailPanel`
@@ -203,17 +206,25 @@ function RecordDetail({
   });
 
   const recordQuery = useQuery({
-    queryKey: ["records", "detail", documentId] as const,
+    queryKey: RECORD_DETAIL_KEY(documentId),
     queryFn: () => RecordsApi.get(documentId),
   });
 
   const record = recordQuery.data ?? null;
 
-  /** Lançamento e segunda chamada mexem na ata e na listagem — as duas caches caem juntas. */
+  /**
+   * Lançamento e segunda chamada mexem na ata aberta e na listagem. As duas invalidações são
+   * explícitas de propósito: `["records"]` já casaria a chave do detalhe por prefixo, mas
+   * depender desse casamento deixa a atualização do painel aberto refém do formato da chave
+   * da listagem. Nomear as duas mantém o refetch do detalhe explícito para quem for mexer aqui.
+   */
   const refresh = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: ["records"] });
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["records"] }),
+      queryClient.invalidateQueries({ queryKey: RECORD_DETAIL_KEY(documentId) }),
+    ]);
     onChanged();
-  }, [queryClient, onChanged]);
+  }, [queryClient, documentId, onChanged]);
 
   const editable =
     record !== null &&
@@ -244,11 +255,10 @@ function RecordDetail({
         )}
         {record && (
           <RecordEntriesTable
-            // Remonta quando a ata volta do servidor com outros valores: o rascunho local da
-            // tabela é semeado uma vez, e `updatedAt` do documento não muda ao salvar notas.
-            key={`${record.document.status.key}:${record.gradedCount}:${record.entries
-              .map((e) => `${e.id}/${e.presence}/${e.grade ?? ""}/${e.observation ?? ""}`)
-              .join("|")}`}
+            // `dataUpdatedAt` muda a cada resposta do servidor, inclusive quando os valores
+            // voltam iguais. O rascunho local da tabela é semeado na montagem, então remontar
+            // aqui é o que descarta a edição local depois que a ata foi gravada.
+            key={recordQuery.dataUpdatedAt}
             record={record}
             editable={editable}
             onSave={handleSave}

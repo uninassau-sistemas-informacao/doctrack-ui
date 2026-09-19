@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 
-import type {
-  EvaluationRecord,
-  Presence,
-  RecordEntriesInput,
+import {
+  recordEntriesInputSchema,
+  type EvaluationRecord,
+  type Presence,
+  type RecordEntriesInput,
 } from "../../lib/api/dto/recordSchema";
 
 const FIELD = "rounded-xl border border-line bg-canvas px-3 py-2 text-sm outline-none focus:border-primary";
@@ -72,6 +73,8 @@ export default function RecordEntriesTable({
     )
   );
   const [error, setError] = useState<string | null>(null);
+  /** Mensagem por linha, indexada pelo id da entrada — mesmo idioma de `fieldErrors` dos forms. */
+  const [fieldErrors, setFieldErrors] = useState<Record<number, string>>({});
   const [saving, setSaving] = useState(false);
   const [retakingId, setRetakingId] = useState<number | null>(null);
 
@@ -81,23 +84,43 @@ export default function RecordEntriesTable({
 
   async function handleSave() {
     setError(null);
+
+    const input = {
+      entries: record.entries.map((entry) => {
+        const draft = drafts[entry.id];
+        // Ausente nao tem nota, e campo vazio e "sem nota ainda", nao zero: o rascunho
+        // aceita a ata incompleta. As duas viram `null`, como o backend espera. A presenca
+        // do rascunho e quem manda, nao o input desabilitado: trocar presente por ausente
+        // limpa a nota mesmo com o campo ainda preenchido na tela.
+        const grade = Number(draft.grade);
+        const hasGrade = draft.presence === "presente" && draft.grade.trim() !== "";
+        return {
+          studentId: entry.studentId,
+          presence: draft.presence,
+          grade: hasGrade && Number.isNaN(grade) === false ? grade : null,
+          observation: draft.observation.trim() || null,
+        };
+      }),
+    };
+
+    // `min`/`max` do input nao valem nada aqui: nao ha `<form>`, entao o navegador nunca roda
+    // a validacao nativa. O zod e a guarda real; o 422 do backend continua sendo a palavra final.
+    const parsed = recordEntriesInputSchema.safeParse(input);
+    if (parsed.success === false) {
+      const issue = parsed.error.issues[0];
+      // O caminho e `entries.<indice>.<campo>`: traduz para o nome do aluno, que e o que
+      // identifica a linha na tela.
+      const index = typeof issue?.path[1] === "number" ? issue.path[1] : null;
+      const student = index === null ? null : record.entries[index]?.studentName;
+      setError(student ? `${student}: ${issue.message}` : (issue?.message ?? "Lançamento inválido."));
+      setFieldErrors(index === null ? {} : { [record.entries[index].id]: issue.message });
+      return;
+    }
+
+    setFieldErrors({});
     setSaving(true);
     try {
-      await onSave({
-        entries: record.entries.map((entry) => {
-          const draft = drafts[entry.id];
-          // Ausente nao tem nota, e campo vazio e "sem nota ainda", nao zero: o rascunho
-          // aceita a ata incompleta. As duas viram `null`, como o backend espera.
-          const grade = Number(draft.grade);
-          const hasGrade = draft.presence === "presente" && draft.grade.trim() !== "";
-          return {
-            studentId: entry.studentId,
-            presence: draft.presence,
-            grade: hasGrade && Number.isNaN(grade) === false ? grade : null,
-            observation: draft.observation.trim() || null,
-          };
-        }),
-      });
+      await onSave(parsed.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível salvar o lançamento.");
     } finally {
@@ -199,17 +222,23 @@ export default function RecordEntriesTable({
 
                   <td className="px-3 py-2.5">
                     {editable ? (
-                      <input
-                        type="number"
-                        min="0"
-                        max="10"
-                        step="0.5"
-                        aria-label={`Nota de ${entry.studentName}`}
-                        disabled={draft.presence !== "presente"}
-                        className={`${FIELD} w-24 disabled:cursor-default disabled:opacity-60`}
-                        value={draft.grade}
-                        onChange={(e) => patch(entry.id, { grade: e.target.value })}
-                      />
+                      <>
+                        <input
+                          type="number"
+                          min="0"
+                          max="10"
+                          step="0.5"
+                          aria-label={`Nota de ${entry.studentName}`}
+                          aria-invalid={fieldErrors[entry.id] ? true : undefined}
+                          disabled={draft.presence !== "presente"}
+                          className={`${FIELD} w-24 disabled:cursor-default disabled:opacity-60`}
+                          value={draft.grade}
+                          onChange={(e) => patch(entry.id, { grade: e.target.value })}
+                        />
+                        {fieldErrors[entry.id] && (
+                          <p className="mt-1 text-xs text-[#993C1D]">{fieldErrors[entry.id]}</p>
+                        )}
+                      </>
                     ) : (
                       <span className="text-muted">
                         {entry.grade === null ? "—" : entry.grade.toFixed(1)}
