@@ -1,8 +1,9 @@
 "use client";
 
 import { XIcon, PencilSimpleIcon } from "@phosphor-icons/react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { DocumentsApi } from "../../lib/api/documents";
 import { ExamsApi } from "../../lib/api/exams";
@@ -34,42 +35,35 @@ export default function DocumentDetailPanel({
   onClose: () => void;
   onChanged?: () => void;
 }) {
-  const [doc, setDoc] = useState<DocumentDetail | null>(null);
-  const [exam, setExam] = useState<Exam | null>(null);
-  const [transitions, setTransitions] = useState<WorkflowTransition[]>([]);
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("conteudo");
-  const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<WorkflowTransition | null>(null);
 
-  useEffect(() => {
-    let active = true;
-
-    async function load() {
-      const [detail, available] = await Promise.all([
+  // Detalhe, ações disponíveis e satélite vêm juntos: as três chamadas descrevem o mesmo
+  // documento no mesmo instante, e separá-las deixaria os botões um passo atrás do status.
+  const { data, error } = useQuery({
+    queryKey: ["documents", documentId, "detail"] as const,
+    queryFn: async (): Promise<{
+      doc: DocumentDetail;
+      transitions: WorkflowTransition[];
+      exam: Exam | null;
+    }> => {
+      const [detail, transitions] = await Promise.all([
         DocumentsApi.get(documentId),
         DocumentsApi.availableTransitions(documentId),
       ]);
-      const satellite = detail.typeKey === "prova" ? await ExamsApi.get(documentId) : null;
-      if (!active) return;
-      setDoc(detail);
-      setTransitions(available);
-      setExam(satellite);
-    }
+      const exam = detail.typeKey === "prova" ? await ExamsApi.get(documentId) : null;
+      return { doc: detail, transitions, exam };
+    },
+  });
 
-    load().catch((err: unknown) => {
-      if (!active) return;
-      setError(err instanceof Error ? err.message : "Não foi possível carregar o documento.");
-    });
-
-    return () => {
-      active = false;
-    };
-  }, [documentId]);
+  const doc = data?.doc ?? null;
+  const exam = data?.exam ?? null;
+  const transitions = data?.transitions ?? [];
 
   async function runTransition(transition: WorkflowTransition, comment?: string) {
-    const updated = await DocumentsApi.transition(documentId, transition.id, comment);
-    setDoc(updated);
-    setTransitions(await DocumentsApi.availableTransitions(documentId));
+    await DocumentsApi.transition(documentId, transition.id, comment);
+    await queryClient.invalidateQueries({ queryKey: ["documents", documentId] });
     setPending(null);
     onChanged?.();
   }
@@ -132,7 +126,7 @@ export default function DocumentDetailPanel({
       <div className="flex-1 overflow-y-auto px-5 py-4">
         {error && (
           <p role="alert" className="text-sm text-[#993C1D]">
-            {error}
+            {error instanceof Error ? error.message : "Não foi possível carregar o documento."}
           </p>
         )}
 

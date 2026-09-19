@@ -1,9 +1,9 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { use } from "react";
 
 import { ExamsApi } from "../../../../../lib/api/exams";
-import type { Exam } from "../../../../../lib/api/dto/examSchema";
 import ExamForm from "../../../../components/exam-form";
 import PageHeader from "../../../../components/page-header";
 
@@ -17,23 +17,13 @@ export default function EditarProvaPage({ params }: { params: Promise<{ id: stri
   const { id } = use(params);
   const documentId = Number(id);
 
-  const [exam, setExam] = useState<Exam | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    ExamsApi.get(documentId)
-      .then((data) => active && setExam(data))
-      .catch((err: unknown) =>
-        active && setError(err instanceof Error ? err.message : "Prova não encontrada.")
-      );
-    return () => {
-      active = false;
-    };
-  }, [documentId]);
+  const { data: exam, error } = useQuery({
+    queryKey: ["exams", documentId] as const,
+    queryFn: () => ExamsApi.get(documentId),
+  });
 
   const editable =
-    exam !== null && ["rascunho", "reprovado"].includes(exam.document.status.key);
+    exam !== undefined && ["rascunho", "reprovado"].includes(exam.document.status.key);
 
   return (
     <>
@@ -46,7 +36,7 @@ export default function EditarProvaPage({ params }: { params: Promise<{ id: stri
         <div className="mx-auto max-w-3xl">
           {error && (
             <p role="alert" className="text-sm text-[#993C1D]">
-              {error}
+              {error instanceof Error ? error.message : "Prova não encontrada."}
             </p>
           )}
           {!error && !exam && <p className="text-sm text-muted">Carregando…</p>}

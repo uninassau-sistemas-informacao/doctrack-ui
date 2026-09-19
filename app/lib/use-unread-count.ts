@@ -1,48 +1,29 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import { NotificationsApi } from "../../lib/api/notifications";
 
 const POLL_INTERVAL_MS = 30_000;
 
-const CHANGED_EVENT = "notifications:changed";
-
-/**
- * Avisa o badge que a caixa mudou. Evento na window pelo mesmo motivo de `session:expired`
- * no client HTTP: sidebar e tela de notificações são irmãs em árvores diferentes, e um
- * contexto só para propagar um número seria mais encanamento do que o problema pede.
- */
-export function notifyUnreadChanged(): void {
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new Event(CHANGED_EVENT));
-  }
-}
+/** Chave compartilhada: quem marca notificação como lida invalida esta query. */
+export const unreadCountKey = ["notifications", "unread-count"] as const;
 
 /**
  * Contagem de não lidas para o badge da sidebar (E3.3). Polling de 30 s: o backend não tem
  * push (SSE/WebSocket fica para depois) e `unread-count` é um COUNT indexado.
+ *
+ * A tela de notificações fura a árvore irmã por `invalidateQueries(unreadCountKey)` — antes
+ * era um evento de `window`, que o cache do TanStack Query dispensa (E10.5).
  */
 export function useUnreadCount(): number {
-  const [count, setCount] = useState(0);
+  const { data } = useQuery({
+    queryKey: unreadCountKey,
+    queryFn: () => NotificationsApi.unreadCount(),
+    refetchInterval: POLL_INTERVAL_MS,
+    // Badge é informativo: falha de rede mantém o último valor em vez de estourar na tela.
+    placeholderData: (previous) => previous,
+  });
 
-  const refresh = useCallback(() => {
-    NotificationsApi.unreadCount()
-      .then(setCount)
-      .catch(() => {
-        // Badge é informativo: falha de rede não deve estourar erro na tela toda.
-      });
-  }, []);
-
-  useEffect(() => {
-    refresh();
-    const timer = setInterval(refresh, POLL_INTERVAL_MS);
-    window.addEventListener(CHANGED_EVENT, refresh);
-    return () => {
-      clearInterval(timer);
-      window.removeEventListener(CHANGED_EVENT, refresh);
-    };
-  }, [refresh]);
-
-  return count;
+  return data ?? 0;
 }

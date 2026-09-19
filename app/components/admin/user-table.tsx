@@ -1,7 +1,8 @@
 "use client";
 
 import { CheckCircleIcon, MagnifyingGlassIcon, PencilSimpleIcon, PlusIcon, XCircleIcon } from "@phosphor-icons/react";
-import { useCallback, useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 
 import { AdminApi } from "../../../lib/api/admin";
 import { ApiError } from "../../../lib/api/client";
@@ -28,61 +29,42 @@ const HEADERS = ["Usuário", "E-mail", "Perfil", "Status", "Ações"];
  * um botão que sempre falha.
  */
 export default function UserTable({ currentUserId }: { currentUserId: number }) {
-  const [users, setUsers] = useState<AdminUser[]>([]);
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<AdminUser | null>(null);
   const [creating, setCreating] = useState(false);
-  const [reloadKey, setReloadKey] = useState(0);
 
-  const reload = useCallback(() => setReloadKey((key) => key + 1), []);
-
+  // Debounce de verdade: a busca dispara a cada tecla e sem isso sairia uma request por
+  // caractere. `useDeferredValue` não serve aqui — ele adia a renderização, não a chamada,
+  // e num browser ocioso reenvia a cada letra (medido: 4 letras = 4 requests).
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
   useEffect(() => {
-    let active = true;
-    // Debounce: a busca dispara a cada tecla; sem isso seria uma request por caractere.
-    // setLoading entra só quando o timer dispara (não síncrono no corpo do efeito), porque o
-    // eslint react-hooks/set-state-in-effect recusa setState direto no corpo do effect.
-    const timer = setTimeout(() => {
-      if (!active) return;
-      setLoading(true);
-      AdminApi.listUsers(search)
-        .then((data) => {
-          if (active) {
-            setUsers(data);
-            setError(null);
-          }
-        })
-        .catch((err) => {
-          if (active) {
-            setError(err instanceof ApiError ? err.message : "Nao foi possivel carregar os usuarios");
-          }
-        })
-        .finally(() => {
-          if (active) {
-            setLoading(false);
-          }
-        });
-    }, 300);
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
-    return () => {
-      active = false;
-      clearTimeout(timer);
-    };
-  }, [search, reloadKey]);
+  const { data: users = [], isPending, error } = useQuery({
+    queryKey: ["admin", "users", debouncedSearch] as const,
+    queryFn: () => AdminApi.listUsers(debouncedSearch),
+    // Mantém a lista anterior na tela enquanto a busca nova carrega, em vez de piscar vazio.
+    placeholderData: (previous) => previous,
+  });
 
-  async function handleToggleActive(user: AdminUser) {
-    try {
+  const reload = () => queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+
+  const toggleActive = useMutation({
+    mutationFn: async (user: AdminUser) => {
       if (user.active) {
         await AdminApi.deactivateUser(user.id);
       } else {
         await AdminApi.updateUser(user.id, { name: user.name, role: user.role, active: true });
       }
-      reload();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Nao foi possivel alterar o status");
-    }
-  }
+    },
+    onSuccess: () => reload(),
+  });
+
+  const failure = toggleActive.error ?? error;
+  const loading = isPending;
 
   return (
     <div className="flex flex-col gap-4">
@@ -105,7 +87,11 @@ export default function UserTable({ currentUserId }: { currentUserId: number }) 
         </button>
       </div>
 
-      {error && <p role="alert" className="text-sm text-[#993C1D]">{error}</p>}
+      {failure && (
+        <p role="alert" className="text-sm text-[#993C1D]">
+          {failure instanceof ApiError ? failure.message : "Nao foi possivel carregar os usuarios"}
+        </p>
+      )}
 
       <div className="overflow-hidden rounded-2xl border border-line bg-white">
         <table className="w-full border-collapse text-sm">
@@ -156,7 +142,7 @@ export default function UserTable({ currentUserId }: { currentUserId: number }) 
                       <PencilSimpleIcon size={15} />
                     </button>
                     <button
-                      onClick={() => handleToggleActive(user)}
+                      onClick={() => toggleActive.mutate(user)}
                       disabled={user.id === currentUserId}
                       title={user.id === currentUserId ? "Você não pode desativar a si mesmo" : user.active ? "Desativar" : "Reativar"}
                       className="cursor-pointer rounded-lg p-1.5 text-muted disabled:cursor-default disabled:opacity-40"
@@ -187,7 +173,7 @@ export default function UserTable({ currentUserId }: { currentUserId: number }) 
           onSaved={() => {
             setCreating(false);
             setEditing(null);
-            reload();
+            void reload();
           }}
         />
       )}

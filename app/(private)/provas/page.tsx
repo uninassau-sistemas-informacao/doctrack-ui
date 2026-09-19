@@ -1,9 +1,10 @@
 "use client";
 
 import { PlusIcon } from "@phosphor-icons/react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 
 import { DocumentsApi } from "../../../lib/api/documents";
 import { ExamsApi } from "../../../lib/api/exams";
@@ -40,46 +41,32 @@ function ProvasBoard() {
   const searchParams = useSearchParams();
   const selectedId = searchParams.get("documento");
 
-  const [statuses, setStatuses] = useState<WorkflowStatus[]>([]);
-  const [exams, setExams] = useState<ExamCard[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const [discipline, setDiscipline] = useState("");
   const [priority, setPriority] = useState<Priority | "">("");
   const [mine, setMine] = useState(false);
 
-  // `reloadKey` força o refetch depois de uma transição (arrasto ou painel de detalhe),
-  // sem duplicar a chamada da API fora do efeito.
-  const [reloadKey, setReloadKey] = useState(0);
-  const reload = useCallback(() => setReloadKey((k) => k + 1), []);
+  const typeQuery = useQuery({
+    // Mesma chave que o detalhe em `admin/type-list`: é a mesma chamada, um cache só.
+    queryKey: ["document-types", "detail", "prova"] as const,
+    queryFn: () => WorkflowApi.getType("prova"),
+  });
 
-  useEffect(() => {
-    let active = true;
-    WorkflowApi.getType("prova")
-      .then((type) => active && setStatuses(type.statuses))
-      .catch(
-        (err: unknown) =>
-          active &&
-          setError(err instanceof Error ? err.message : "Não foi possível carregar o fluxo.")
-      );
-    return () => {
-      active = false;
-    };
-  }, []);
+  const examsQuery = useQuery({
+    queryKey: ["exams", { priority: priority || null, mine }] as const,
+    queryFn: () => ExamsApi.list({ priority: priority || undefined, mine: mine || undefined }),
+  });
 
-  useEffect(() => {
-    let active = true;
-    ExamsApi.list({ priority: priority || undefined, mine: mine || undefined })
-      .then((data) => active && setExams(data))
-      .catch(
-        (err: unknown) =>
-          active &&
-          setError(err instanceof Error ? err.message : "Não foi possível carregar as provas.")
-      );
-    return () => {
-      active = false;
-    };
-  }, [priority, mine, reloadKey]);
+  /** Refaz a listagem depois de uma transição (arrasto ou painel de detalhe). */
+  const reload = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: ["exams"] });
+  }, [queryClient]);
+
+  const statuses: WorkflowStatus[] = typeQuery.data?.statuses ?? [];
+  const exams: ExamCard[] = useMemo(() => examsQuery.data ?? [], [examsQuery.data]);
+  // Erro de arrasto não entra aqui: o quadro mostra o motivo no próprio card (`dropError`).
+  const error = typeQuery.error ?? examsQuery.error;
 
   // Disciplina é texto livre no satélite e não tem filtro na API; o recorte é no cliente,
   // sobre o que a listagem já trouxe.
@@ -168,7 +155,7 @@ function ProvasBoard() {
         <div className="min-h-0 flex-1 overflow-auto p-6">
           {error && (
             <p role="alert" className="mb-3 text-sm text-[#993C1D]">
-              {error}
+              {error.message}
             </p>
           )}
           <KanbanBoard

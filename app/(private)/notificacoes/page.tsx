@@ -1,13 +1,14 @@
 "use client";
 
 import { BellIcon, CheckIcon } from "@phosphor-icons/react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 
 import { NotificationsApi } from "../../../lib/api/notifications";
 import type { Notification } from "../../../lib/api/dto/notificationSchema";
 import PageHeader from "../../components/page-header";
-import { notifyUnreadChanged } from "../../lib/use-unread-count";
+import { unreadCountKey } from "../../lib/use-unread-count";
 
 /** Tipos que ainda não têm tela própria caem no dashboard em vez de virar link quebrado. */
 const ROUTE_BY_TYPE_KEY: Record<string, string> = { prova: "/provas" };
@@ -32,34 +33,29 @@ function formatMoment(iso: string): string {
  */
 export default function NotificacoesPage() {
   const router = useRouter();
-  const [items, setItems] = useState<Notification[] | null>(null);
+  const queryClient = useQueryClient();
   const [unreadOnly, setUnreadOnly] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  // Mesmo padrão do quadro de provas: `reloadKey` refaz o fetch depois de "marcar todas"
-  // sem duplicar a chamada da API fora do efeito.
-  const [reloadKey, setReloadKey] = useState(0);
-  const reload = useCallback(() => setReloadKey((k) => k + 1), []);
+  const { data: items, isPending, error } = useQuery({
+    queryKey: ["notifications", "list", unreadOnly] as const,
+    queryFn: () => NotificationsApi.list(unreadOnly),
+  });
 
-  useEffect(() => {
-    let active = true;
-    NotificationsApi.list(unreadOnly)
-      .then((data) => active && setItems(data))
-      .catch(
-        (err: unknown) =>
-          active &&
-          setError(err instanceof Error ? err.message : "Não foi possível carregar as notificações.")
-      );
-    return () => {
-      active = false;
-    };
-  }, [unreadOnly, reloadKey]);
+  /** Uma leitura mexe nesta lista e no badge da sidebar; invalidar o prefixo cobre os dois. */
+  function invalidate() {
+    void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+  }
+
+  const markAll = useMutation({
+    mutationFn: () => NotificationsApi.markAllAsRead(),
+    onSuccess: invalidate,
+  });
 
   async function open(notification: Notification) {
     if (notification.readAt === null) {
       try {
         await NotificationsApi.markAsRead(notification.id);
-        notifyUnreadChanged();
+        void queryClient.invalidateQueries({ queryKey: unreadCountKey });
       } catch {
         // Navegar importa mais que marcar; o próximo carregamento corrige o estado.
       }
@@ -67,17 +63,8 @@ export default function NotificacoesPage() {
     router.push(documentHref(notification));
   }
 
-  async function markAll() {
-    try {
-      await NotificationsApi.markAllAsRead();
-      notifyUnreadChanged();
-      reload();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Não foi possível marcar as notificações.");
-    }
-  }
-
-  const loading = items === null;
+  const failure = markAll.error ?? error;
+  const loading = isPending;
   const visible = items ?? [];
   const unread = visible.filter((item) => item.readAt === null).length;
 
@@ -85,8 +72,8 @@ export default function NotificacoesPage() {
     <div className="flex h-full min-h-0 flex-col">
       <PageHeader title="Notificações" subtitle={`${unread} não lida(s)`}>
         <button
-          onClick={markAll}
-          disabled={unread === 0}
+          onClick={() => markAll.mutate()}
+          disabled={unread === 0 || markAll.isPending}
           className="flex items-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-muted disabled:opacity-50"
         >
           <CheckIcon size={16} /> Marcar todas como lidas
@@ -105,9 +92,9 @@ export default function NotificacoesPage() {
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto p-6">
-        {error && (
+        {failure && (
           <p role="alert" className="mb-3 text-sm text-[#993C1D]">
-            {error}
+            {failure instanceof Error ? failure.message : "Não foi possível carregar as notificações."}
           </p>
         )}
 
