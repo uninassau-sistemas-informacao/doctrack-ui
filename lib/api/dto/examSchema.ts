@@ -16,6 +16,8 @@ export const examSchema = z.object({
   applicationDate: z.string(),
   durationMinutes: z.number(),
   notes: z.string().nullable(),
+  /** E5.5: prova de reposição aponta para o documento da prova original. */
+  parentExamDocumentId: z.number().nullable(),
   questions: z.array(examQuestionSchema),
 });
 
