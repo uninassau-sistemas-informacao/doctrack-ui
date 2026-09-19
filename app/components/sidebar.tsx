@@ -16,6 +16,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { AuthApi } from "../../lib/api/auth";
+import type { DocumentType } from "../../lib/api/dto/workflowSchema";
 import { ROLE_LABELS, User } from "../lib/data";
 
 interface NavItem {
@@ -31,15 +32,33 @@ function isActive(pathname: string, href: string): boolean {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
+/**
+ * Tipos com tela própria (E4.5): entram no menu com o rótulo e a rota deles, não com o
+ * nome cadastrado no banco nem com o Kanban genérico. Atas ainda não tem rota (E5), então
+ * aponta para o dashboard em vez de virar link quebrado — mesmo critério de antes.
+ */
+const FIXED_TYPES: Record<string, { icon: Icon; label: string; href: string }> = {
+  prova: { icon: ColumnsIcon, label: "Gestão de Provas", href: "/provas" },
+  ata: { icon: FileTextIcon, label: "Gestão de Atas", href: "/" },
+};
+
 interface SidebarProps {
   user: User;
+  documentTypes: DocumentType[];
   collapsed: boolean;
   unreadCount: number;
   hasAdmin: boolean;
   onToggle: () => void;
 }
 
-export default function Sidebar({ user, collapsed, unreadCount, hasAdmin, onToggle }: SidebarProps) {
+export default function Sidebar({
+  user,
+  documentTypes,
+  collapsed,
+  unreadCount,
+  hasAdmin,
+  onToggle,
+}: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -57,12 +76,23 @@ export default function Sidebar({ user, collapsed, unreadCount, hasAdmin, onTogg
     }
   }
 
-  // Atas (E5) ainda não tem rota; fica apontando para o dashboard até o épico chegar,
-  // em vez de virar link quebrado.
+  // Um item por tipo de documento ativo (E4.5) — tipo novo cadastrado no /admin aparece aqui
+  // sem deploy. A API já devolve só os ativos, ordenados por nome.
+  // Os tipos sem tela própria abrem o Kanban genérico do E7.3 (`/documentos/[tipo]`), rota que
+  // nasce naquele épico: até lá o item aparece no menu e leva a um 404.
+  const typeItems: NavItem[] = documentTypes.map((type) => {
+    const fixed = FIXED_TYPES[type.key];
+    return {
+      key: type.key,
+      icon: fixed?.icon ?? FileTextIcon,
+      label: fixed?.label ?? type.name,
+      href: fixed?.href ?? `/documentos/${type.key}`,
+    };
+  });
+
   const navItems: NavItem[] = [
     { key: "dashboard", icon: SquaresFourIcon, label: "Dashboard", href: "/" },
-    { key: "provas", icon: ColumnsIcon, label: "Gestão de Provas", href: "/provas" },
-    { key: "atas", icon: FileTextIcon, label: "Gestão de Atas", href: "/" },
+    ...typeItems,
     { key: "notificacoes", icon: BellIcon, label: "Notificações", href: "/notificacoes", badge: unreadCount },
   ];
 

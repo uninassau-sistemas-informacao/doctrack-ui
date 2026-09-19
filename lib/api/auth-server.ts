@@ -1,4 +1,7 @@
+import { z } from "zod";
+
 import { meResponseSchema, type MeResponse } from "./dto/authSchema";
+import { documentTypeSchema, type DocumentType } from "./dto/workflowSchema";
 
 const API_URL = process.env.API_URL ?? "http://localhost:8080/api/v1";
 
@@ -24,4 +27,30 @@ export async function fetchMe(cookieHeader: string): Promise<MeResponse | null> 
   const body: unknown = await response.json();
   const result = meResponseSchema.safeParse(body);
   return result.success ? result.data : null;
+}
+
+/**
+ * Tipos ativos para o menu dinâmico (E4.5). Server-side pelo mesmo motivo de `fetchMe`:
+ * o layout privado já é dinâmico (lê `cookies()`) e já busca o usuário, então a sidebar
+ * chega renderizada em vez de piscar sem itens num `useEffect`.
+ *
+ * `GET /document-types` já devolve só os ativos, ordenados por nome
+ * (`findAllByActiveTrueOrderByName`) — não há o que filtrar aqui.
+ *
+ * Lista vazia em falha: o menu perde os tipos, mas o resto das telas privadas continua de pé.
+ * Derrubar o layout inteiro porque a API de tipos piscou seria pior que um menu curto.
+ */
+export async function fetchDocumentTypes(cookieHeader: string): Promise<DocumentType[]> {
+  const response = await fetch(`${API_URL}/document-types`, {
+    headers: { Cookie: cookieHeader },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    return [];
+  }
+
+  const body: unknown = await response.json().catch(() => null);
+  const result = z.array(documentTypeSchema).safeParse(body);
+  return result.success ? result.data : [];
 }

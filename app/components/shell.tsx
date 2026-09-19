@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import type { MeResponse } from "../../lib/api/dto/authSchema";
+import type { DocumentType } from "../../lib/api/dto/workflowSchema";
 import type { User } from "../lib/data";
 import { useUnreadCount } from "../lib/use-unread-count";
 import Sidebar from "./sidebar";
@@ -30,9 +31,11 @@ function toUser(me: MeResponse): User {
 /** Moldura das telas privadas: sidebar fixa + área de conteúdo rolável. */
 export default function Shell({
   me,
+  documentTypes,
   children,
 }: {
   me: MeResponse;
+  documentTypes: DocumentType[];
   children: React.ReactNode;
 }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -42,6 +45,7 @@ export default function Shell({
     <div className="flex h-screen overflow-hidden bg-canvas text-ink">
       <Sidebar
         user={toUser(me)}
+        documentTypes={documentTypes}
         collapsed={collapsed}
         unreadCount={unreadCount}
         hasAdmin={me.role === "admin"}

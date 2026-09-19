@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { fetchMe } from "../../lib/api/auth-server";
+import { fetchDocumentTypes, fetchMe } from "../../lib/api/auth-server";
 import Shell from "../components/shell";
 
 /**
@@ -28,5 +28,12 @@ export default async function PrivateLayout({
     redirect("/login");
   }
 
-  return <Shell me={me}>{children}</Shell>;
+  // Só depois de confirmar a sessão: sem cookie válido a chamada voltaria 401 de graça.
+  const documentTypes = await fetchDocumentTypes(cookieStore.toString());
+
+  return (
+    <Shell me={me} documentTypes={documentTypes}>
+      {children}
+    </Shell>
+  );
 }
