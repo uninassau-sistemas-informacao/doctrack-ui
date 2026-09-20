@@ -11,7 +11,7 @@ import PageHeader from "../../components/page-header";
 import { unreadCountKey } from "../../lib/use-unread-count";
 
 /** Tipos que ainda não têm tela própria caem no dashboard em vez de virar link quebrado. */
-const ROUTE_BY_TYPE_KEY: Record<string, string> = { prova: "/provas" };
+const ROUTE_BY_TYPE_KEY: Record<string, string> = { prova: "/provas", ata: "/atas" };
 
 function documentHref(notification: Notification): string {
   const base = ROUTE_BY_TYPE_KEY[notification.documentTypeKey];

@@ -132,16 +132,20 @@ export default function DocumentDetailPanel({
 
         {doc && tab === "conteudo" && (
           <div className="flex flex-col gap-4">
-            {exam && (
-              <dl className="grid grid-cols-2 gap-3 text-sm">
-                <Info label="Disciplina" value={exam.discipline} />
-                <Info label="Turma" value={exam.classGroup} />
-                <Info label="Aplicação" value={formatDate(exam.applicationDate)} />
-                <Info label="Duração" value={`${exam.durationMinutes} min`} />
-                <Info label="Solicitante" value={doc.requester?.name ?? "—"} />
-                <Info label="Prazo" value={doc.deadline ? formatDate(doc.deadline) : "—"} />
-              </dl>
-            )}
+            {/* Solicitante e prazo são do documento e valem para qualquer tipo; os campos de
+                prova só aparecem quando o satélite foi carregado (`typeKey === "prova"`). */}
+            <dl className="grid grid-cols-2 gap-3 text-sm">
+              {exam && (
+                <>
+                  <Info label="Disciplina" value={exam.discipline} />
+                  <Info label="Turma" value={exam.classGroup} />
+                  <Info label="Aplicação" value={formatDate(exam.applicationDate)} />
+                  <Info label="Duração" value={`${exam.durationMinutes} min`} />
+                </>
+              )}
+              <Info label="Solicitante" value={doc.requester?.name ?? "—"} />
+              <Info label="Prazo" value={doc.deadline ? formatDate(doc.deadline) : "—"} />
+            </dl>
 
             {doc.description && (
               <div>

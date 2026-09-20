@@ -34,12 +34,11 @@ function isActive(pathname: string, href: string): boolean {
 
 /**
  * Tipos com tela própria (E4.5): entram no menu com o rótulo e a rota deles, não com o
- * nome cadastrado no banco nem com o Kanban genérico. Atas ainda não tem rota (E5), então
- * aponta para o dashboard em vez de virar link quebrado — mesmo critério de antes.
+ * nome cadastrado no banco nem com o Kanban genérico.
  */
 const FIXED_TYPES: Record<string, { icon: Icon; label: string; href: string }> = {
   prova: { icon: ColumnsIcon, label: "Gestão de Provas", href: "/provas" },
-  ata: { icon: FileTextIcon, label: "Gestão de Atas", href: "/" },
+  ata: { icon: FileTextIcon, label: "Gestão de Atas", href: "/atas" },
 };
 
 interface SidebarProps {
@@ -47,7 +46,7 @@ interface SidebarProps {
   documentTypes: DocumentType[];
   collapsed: boolean;
   unreadCount: number;
-  hasAdmin: boolean;
+  canManageUsers: boolean;
   onToggle: () => void;
 }
 
@@ -56,7 +55,7 @@ export default function Sidebar({
   documentTypes,
   collapsed,
   unreadCount,
-  hasAdmin,
+  canManageUsers,
   onToggle,
 }: SidebarProps) {
   const router = useRouter();
@@ -154,7 +153,7 @@ export default function Sidebar({
           ))}
         </div>
 
-        {hasAdmin && (
+        {canManageUsers && (
           <div>
             {expanded && (
               <p className="mb-2 mt-5 px-3 text-xs font-semibold uppercase tracking-wider text-muted">Admin</p>

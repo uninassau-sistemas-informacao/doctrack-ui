@@ -9,10 +9,10 @@ import {
   adminUserUpdateSchema,
   type AdminUser,
 } from "../../../lib/api/dto/adminSchema";
+import type { Role } from "../../../lib/api/dto/authSchema";
 import { ROLE_LABELS } from "../../lib/data";
 
 const FIELD = "w-full rounded-xl border border-line bg-canvas px-3 py-2.5 text-sm outline-none focus:border-primary";
-const ROLES = ["professor", "supervisor", "secretaria", "coordenador", "admin"] as const;
 
 /**
  * Criar ou editar usuário. O mesmo modal serve aos dois casos, como `exam-form` serve criar e
@@ -20,22 +20,33 @@ const ROLES = ["professor", "supervisor", "secretaria", "coordenador", "admin"] 
  *
  * Papel e status ficam travados quando o admin edita a si mesmo — a API recusa com 409, e
  * oferecer um campo que sempre falha é pior que não oferecer.
+ *
+ * As opções de papel vêm de `manageableRoles`, que a API calcula. Ao editar, o papel atual do
+ * usuário entra na lista mesmo se estiver fora do alcance: um select que abre em outro papel
+ * mentiria sobre quem está na tela — e a opção extra fica desabilitada, porque salvá-la levaria
+ * 403 (a API é quem decide; isto aqui é só conveniência).
  */
 export default function UserModal({
   user,
   isSelf,
+  manageableRoles,
   onClose,
   onSaved,
 }: {
   user: AdminUser | null;
   isSelf: boolean;
+  manageableRoles: Role[];
   onClose: () => void;
   onSaved: () => void;
 }) {
   const [name, setName] = useState(user?.name ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<string>(user?.role ?? "professor");
+  const [role, setRole] = useState<string>(user?.role ?? manageableRoles[0]);
+  const roleOptions =
+    user && manageableRoles.includes(user.role) === false
+      ? [user.role, ...manageableRoles]
+      : manageableRoles;
   const [active, setActive] = useState(user?.active ?? true);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -119,8 +130,12 @@ export default function UserModal({
               disabled={isSelf}
               className={`${FIELD} disabled:opacity-60`}
             >
-              {ROLES.map((item) => (
-                <option key={item} value={item}>
+              {roleOptions.map((item) => (
+                <option
+                  key={item}
+                  value={item}
+                  disabled={manageableRoles.includes(item) === false}
+                >
                   {ROLE_LABELS[item]}
                 </option>
               ))}

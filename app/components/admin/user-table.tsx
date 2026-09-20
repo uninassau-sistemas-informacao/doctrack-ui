@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { AdminApi } from "../../../lib/api/admin";
 import { ApiError } from "../../../lib/api/client";
 import type { AdminUser } from "../../../lib/api/dto/adminSchema";
+import type { Role } from "../../../lib/api/dto/authSchema";
 import { ROLE_LABELS } from "../../lib/data";
 import UserModal from "./user-modal";
 
@@ -26,9 +27,16 @@ const HEADERS = ["Usuário", "E-mail", "Perfil", "Status", "Ações"];
  *
  * O próprio usuário aparece com as ações de papel/status bloqueadas — a API recusa com 409
  * (um admin que se rebaixasse deixaria o sistema sem administrador), e a UI não deve oferecer
- * um botão que sempre falha.
+ * um botão que sempre falha. Pela mesma razão, linhas de papel fora de `manageableRoles` vêm sem
+ * ações: a lista já chega filtrada pela API, então isso só aparece em quem vê todos os papéis.
  */
-export default function UserTable({ currentUserId }: { currentUserId: number }) {
+export default function UserTable({
+  currentUserId,
+  manageableRoles,
+}: {
+  currentUserId: number;
+  manageableRoles: Role[];
+}) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<AdminUser | null>(null);
@@ -134,21 +142,27 @@ export default function UserTable({ currentUserId }: { currentUserId: number }) 
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setEditing(user)}
-                      title="Editar"
-                      className="cursor-pointer rounded-lg p-1.5 text-muted"
-                    >
-                      <PencilSimpleIcon size={15} />
-                    </button>
-                    <button
-                      onClick={() => toggleActive.mutate(user)}
-                      disabled={user.id === currentUserId}
-                      title={user.id === currentUserId ? "Você não pode desativar a si mesmo" : user.active ? "Desativar" : "Reativar"}
-                      className="cursor-pointer rounded-lg p-1.5 text-muted disabled:cursor-default disabled:opacity-40"
-                    >
-                      {user.active ? <XCircleIcon size={15} /> : <CheckCircleIcon size={15} />}
-                    </button>
+                    {manageableRoles.includes(user.role) === false ? (
+                      <span className="text-xs text-muted">—</span>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => setEditing(user)}
+                          title="Editar"
+                          className="cursor-pointer rounded-lg p-1.5 text-muted"
+                        >
+                          <PencilSimpleIcon size={15} />
+                        </button>
+                        <button
+                          onClick={() => toggleActive.mutate(user)}
+                          disabled={user.id === currentUserId}
+                          title={user.id === currentUserId ? "Você não pode desativar a si mesmo" : user.active ? "Desativar" : "Reativar"}
+                          className="cursor-pointer rounded-lg p-1.5 text-muted disabled:cursor-default disabled:opacity-40"
+                        >
+                          {user.active ? <XCircleIcon size={15} /> : <CheckCircleIcon size={15} />}
+                        </button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -166,6 +180,7 @@ export default function UserTable({ currentUserId }: { currentUserId: number }) 
         <UserModal
           user={editing}
           isSelf={editing?.id === currentUserId}
+          manageableRoles={manageableRoles}
           onClose={() => {
             setCreating(false);
             setEditing(null);
