@@ -11,21 +11,17 @@ export const roleSchema = z.enum([
 
 export type Role = z.infer<typeof roleSchema>;
 
-/** Contrato de `MeResponse` retornado por register/login/refresh/me. */
+/** Contrato de `MeResponse` retornado por login/refresh/me. */
 export const meResponseSchema = z.object({
   id: z.number(),
   name: z.string(),
   email: z.string(),
   role: roleSchema,
+  /** Papéis que este usuário pode criar/editar — a hierarquia vem da API, nunca duplicada aqui. */
+  manageableRoles: z.array(roleSchema),
 });
 
 export type MeResponse = z.infer<typeof meResponseSchema>;
-
-export interface RegisterInput {
-  name: string;
-  email: string;
-  password: string;
-}
 
 export interface LoginInput {
   email: string;

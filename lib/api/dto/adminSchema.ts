@@ -14,7 +14,7 @@ export const adminUserSchema = z.object({
 export type AdminUser = z.infer<typeof adminUserSchema>;
 
 /**
- * Entrada de criação. A senha só existe aqui: `PUT /admin/users/{id}` não troca senha nem
+ * Entrada de criação. A senha só existe aqui: `PUT /users/{id}` não troca senha nem
  * e-mail — mexer no e-mail mudaria a identidade de login, fora do escopo do E4.
  */
 export const adminUserCreateSchema = z.object({

@@ -1,7 +1,6 @@
 "use client";
 
 import { GraduationCapIcon } from "@phosphor-icons/react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
@@ -97,13 +96,6 @@ export default function LoginPage() {
             </button>
           </form>
         </div>
-
-        <p className="mt-5 text-center text-sm text-muted">
-          Não tem conta?{" "}
-          <Link href="/cadastro" className="font-medium text-primary">
-            Cadastre-se
-          </Link>
-        </p>
       </section>
     </main>
   );

@@ -3,19 +3,10 @@ import {
   meResponseSchema,
   type LoginInput,
   type MeResponse,
-  type RegisterInput,
 } from "./dto/authSchema";
 
 /** Funções de autenticação — única porta de entrada para `/auth/*`. */
 export const AuthApi = {
-  async register(input: RegisterInput): Promise<MeResponse> {
-    const data = await apiFetch<unknown>("/auth/register", {
-      method: "POST",
-      body: JSON.stringify(input),
-    });
-    return meResponseSchema.parse(data);
-  },
-
   async login(input: LoginInput): Promise<MeResponse> {
     const data = await apiFetch<unknown>("/auth/login", {
       method: "POST",

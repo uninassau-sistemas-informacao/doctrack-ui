@@ -26,23 +26,23 @@ import { z } from "zod";
 export const AdminApi = {
   async listUsers(search?: string): Promise<AdminUser[]> {
     const query = search && search.trim() ? `?search=${encodeURIComponent(search.trim())}` : "";
-    return z.array(adminUserSchema).parse(await apiFetch<unknown>(`/admin/users${query}`));
+    return z.array(adminUserSchema).parse(await apiFetch<unknown>(`/users${query}`));
   },
 
   async createUser(input: AdminUserCreateInput): Promise<AdminUser> {
     return adminUserSchema.parse(
-      await apiFetch<unknown>("/admin/users", { method: "POST", body: JSON.stringify(input) }),
+      await apiFetch<unknown>("/users", { method: "POST", body: JSON.stringify(input) }),
     );
   },
 
   async updateUser(id: number, input: AdminUserUpdateInput): Promise<AdminUser> {
     return adminUserSchema.parse(
-      await apiFetch<unknown>(`/admin/users/${id}`, { method: "PUT", body: JSON.stringify(input) }),
+      await apiFetch<unknown>(`/users/${id}`, { method: "PUT", body: JSON.stringify(input) }),
     );
   },
 
   async deactivateUser(id: number): Promise<void> {
-    await apiFetch<void>(`/admin/users/${id}`, { method: "DELETE" });
+    await apiFetch<void>(`/users/${id}`, { method: "DELETE" });
   },
 
   async createType(input: DocumentTypeInput): Promise<DocumentType> {
