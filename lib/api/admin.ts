@@ -19,9 +19,11 @@ import {
 import { z } from "zod";
 
 /**
- * Rotas de administração (E4). Todas exigem papel admin no backend
- * (`@PreAuthorize("hasAuthority('ADMIN')")`); a UI esconde o menu e a página redireciona,
- * mas quem decide é a API — esconder link não é controle de acesso.
+ * Rotas de administração (E4). As rotas de tipo de documento/workflow exigem papel admin no
+ * backend (`@PreAuthorize("hasAuthority('ADMIN')")`); as quatro rotas de usuário (`/users`) não
+ * são admin-only — a autorização é hierárquica (`Role.manages()`), resolvida no
+ * `UserManagementService`. Em ambos os casos a UI só esconde o menu e a página redireciona;
+ * quem decide é a API — esconder link não é controle de acesso.
  */
 export const AdminApi = {
   async listUsers(search?: string): Promise<AdminUser[]> {

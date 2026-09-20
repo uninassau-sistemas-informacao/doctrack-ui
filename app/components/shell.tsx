@@ -48,7 +48,7 @@ export default function Shell({
         documentTypes={documentTypes}
         collapsed={collapsed}
         unreadCount={unreadCount}
-        hasAdmin={me.role === "admin"}
+        canManageUsers={me.manageableRoles.length > 0}
         onToggle={() => setCollapsed((c) => !c)}
       />
       <main className="flex min-w-0 flex-1 flex-col overflow-hidden">{children}</main>

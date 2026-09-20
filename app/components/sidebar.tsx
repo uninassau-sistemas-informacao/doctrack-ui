@@ -46,7 +46,7 @@ interface SidebarProps {
   documentTypes: DocumentType[];
   collapsed: boolean;
   unreadCount: number;
-  hasAdmin: boolean;
+  canManageUsers: boolean;
   onToggle: () => void;
 }
 
@@ -55,7 +55,7 @@ export default function Sidebar({
   documentTypes,
   collapsed,
   unreadCount,
-  hasAdmin,
+  canManageUsers,
   onToggle,
 }: SidebarProps) {
   const router = useRouter();
@@ -153,7 +153,7 @@ export default function Sidebar({
           ))}
         </div>
 
-        {hasAdmin && (
+        {canManageUsers && (
           <div>
             {expanded && (
               <p className="mb-2 mt-5 px-3 text-xs font-semibold uppercase tracking-wider text-muted">Admin</p>
