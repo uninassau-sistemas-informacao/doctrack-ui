@@ -44,7 +44,7 @@ export default function UserModal({
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<string>(user?.role ?? manageableRoles[0]);
   const roleOptions =
-    user && manageableRoles.includes(user.role as Role) === false
+    user && manageableRoles.includes(user.role) === false
       ? [user.role, ...manageableRoles]
       : manageableRoles;
   const [active, setActive] = useState(user?.active ?? true);
@@ -134,9 +134,9 @@ export default function UserModal({
                 <option
                   key={item}
                   value={item}
-                  disabled={manageableRoles.includes(item as Role) === false}
+                  disabled={manageableRoles.includes(item) === false}
                 >
-                  {ROLE_LABELS[item as Role]}
+                  {ROLE_LABELS[item]}
                 </option>
               ))}
             </select>

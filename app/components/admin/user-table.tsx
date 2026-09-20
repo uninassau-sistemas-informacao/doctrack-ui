@@ -142,7 +142,7 @@ export default function UserTable({
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    {manageableRoles.includes(user.role as Role) === false ? (
+                    {manageableRoles.includes(user.role) === false ? (
                       <span className="text-xs text-muted">—</span>
                     ) : (
                       <>
