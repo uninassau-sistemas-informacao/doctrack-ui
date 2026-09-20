@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import type { Role } from "../../../lib/api/dto/authSchema";
 import PageHeader from "../../components/page-header";
 import TypeList from "../../components/admin/type-list";
 import UserTable from "../../components/admin/user-table";
@@ -17,16 +18,31 @@ const TABS: { key: Tab; label: string }[] = [
  * Duas abas, estado local — a escolha não precisa sobreviver a um reload nem ser
  * compartilhável por link, ao contrário da seleção de documento no quadro de provas
  * (que mora na URL justamente porque é compartilhável).
+ *
+ * As abas visíveis saem das permissões: usuários para quem gerencia algum papel, tipos só para
+ * `admin`. O estado inicial vem da primeira aba visível e não de um literal — um coordenador
+ * cairia numa aba escondida e veria a tela vazia.
  */
-export default function AdminTabs({ currentUserId }: { currentUserId: number }) {
-  const [tab, setTab] = useState<Tab>("usuarios");
+export default function AdminTabs({
+  currentUserId,
+  role,
+  manageableRoles,
+}: {
+  currentUserId: number;
+  role: Role;
+  manageableRoles: Role[];
+}) {
+  const tabs = TABS.filter((item) =>
+    item.key === "usuarios" ? manageableRoles.length > 0 : role === "admin",
+  );
+  const [tab, setTab] = useState<Tab>(tabs[0].key);
 
   return (
     <>
       <PageHeader title="Administração" subtitle="Gerenciamento de usuários, tipos e fluxos" />
 
       <div className="flex gap-1 border-b border-line-soft bg-white px-6">
-        {TABS.map((item) => (
+        {tabs.map((item) => (
           <button
             key={item.key}
             onClick={() => setTab(item.key)}
@@ -42,7 +58,11 @@ export default function AdminTabs({ currentUserId }: { currentUserId: number }) 
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
-        {tab === "usuarios" ? <UserTable currentUserId={currentUserId} /> : <TypeList />}
+        {tab === "usuarios" ? (
+          <UserTable currentUserId={currentUserId} manageableRoles={manageableRoles} />
+        ) : (
+          <TypeList />
+        )}
       </div>
     </>
   );
