@@ -88,7 +88,7 @@ export default function DashboardPage() {
           <>
             <div className="grid grid-cols-4 gap-4">
               {view.kpis.map((kpi) => (
-                <KpiCard key={kpi.label} kpi={kpi} />
+                <KpiCard key={kpi.key} kpi={kpi} />
               ))}
             </div>
 

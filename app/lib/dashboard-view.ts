@@ -18,6 +18,8 @@ import type { RecordCard } from "../../lib/api/dto/recordSchema";
 import { NOTIF_DOT, PRIORITY_CONFIG, badgeFromStatus, formatDate, formatDateTime } from "./data";
 
 export interface KpiView {
+  /** Identificador estável vindo da API — é ele que chaveia a lista, não o rótulo. */
+  key: string;
   label: string;
   value: number;
   icon: Icon;
@@ -114,7 +116,7 @@ const NEUTRAL_KPI = { icon: FileTextIcon, color: "#717182", bg: "#ececf0" };
 
 function kpiView(kpi: DashboardKpi): KpiView {
   const style = KPI_STYLE[kpi.key] ?? NEUTRAL_KPI;
-  return { label: kpi.label, value: kpi.value, ...style };
+  return { key: kpi.key, label: kpi.label, value: kpi.value, ...style };
 }
 
 /** O tipo da API é semântico; a cor é decisão visual e fica deste lado. */
@@ -276,7 +278,10 @@ export function buildDashboardView(data: Dashboard, notifications: Notification[
     };
   }
 
-  // coordenador e admin compartilham a visão de gestão (decisão do E6).
+  // Coordenador e admin compartilham a visão de gestão (decisão do E6). Este ramo é também o
+  // fallback: um papel novo em `roleSchema` cai aqui em vez de renderizar tela vazia. Os KPIs
+  // continuam certos de qualquer forma — quem decide quais são é a API, por papel — mas os
+  // painéis abaixo assumem gestão, então um papel novo precisa ganhar o seu `if` acima.
   return {
     headerButton: null,
     kpis,
