@@ -34,6 +34,8 @@ export const documentMovementSchema = z.object({
   actor: userSummarySchema.nullable(),
   comment: z.string().nullable(),
   createdAt: z.string(),
+  /** Contexto de movimento que não é mudança de status — hoje só reatribuição (E7.4). */
+  detailsJson: z.string().nullable(),
 });
 
 export const documentDetailSchema = documentSchema.extend({

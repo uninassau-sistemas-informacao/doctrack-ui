@@ -45,4 +45,27 @@ export const DocumentsApi = {
     });
     return documentDetailSchema.parse(data);
   },
+
+  /** Só para tipos sem tela própria (E7.3); prova e ata têm rotas específicas. */
+  async create(input: {
+    typeKey: string;
+    title: string;
+    description?: string;
+    priority?: string;
+    deadline?: string | null;
+  }): Promise<DocumentDetail> {
+    return documentDetailSchema.parse(
+      await apiFetch<unknown>("/documents", { method: "POST", body: JSON.stringify(input) })
+    );
+  },
+
+  /** RF02.21: coordenador e admin. Devolve o documento já com o histórico atualizado. */
+  async reassign(id: number, assigneeId: number): Promise<DocumentDetail> {
+    return documentDetailSchema.parse(
+      await apiFetch<unknown>(`/documents/${id}/assignee`, {
+        method: "PATCH",
+        body: JSON.stringify({ assigneeId }),
+      })
+    );
+  },
 };
