@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { AuthApi } from "../../lib/api/auth";
+import { canSeeReports } from "../../lib/api/dto/authSchema";
 import { DocumentsApi } from "../../lib/api/documents";
 import { ExamsApi } from "../../lib/api/exams";
 import type { DocumentDetail } from "../../lib/api/dto/documentSchema";
@@ -13,6 +14,7 @@ import type { Exam } from "../../lib/api/dto/examSchema";
 import type { WorkflowTransition } from "../../lib/api/dto/workflowSchema";
 import { PRIORITY_CONFIG, badgeFromStatus, formatDate } from "../lib/data";
 import AttachmentList from "./attachment-list";
+import DocumentTimeline from "./document-timeline";
 import ReassignModal from "./reassign-modal";
 
 type Tab = "conteudo" | "anexos" | "historico";
@@ -201,45 +203,21 @@ export default function DocumentDetailPanel({
         )}
 
         {doc && tab === "historico" && (
-          <ol className="flex flex-col gap-3">
-            {doc.movements.map((m) => {
-              const to = badgeFromStatus(m.toStatus);
-              const reassign = m.transitionKey === null ? parseReassignDetails(m.detailsJson) : null;
-              return (
-                <li key={m.id} className="flex gap-3">
-                  <span
-                    className="mt-1.5 size-2 shrink-0 rounded-full"
-                    style={{ background: m.toStatus.color }}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium">
-                      {reassign
-                        ? `Responsável alterado: ${reassign.fromAssigneeName ?? "—"} → ${reassign.toAssigneeName ?? "—"}`
-                        : (
-                          <>
-                            {m.transitionLabel ?? "Documento criado"}
-                            <span className="ml-1.5 font-normal text-muted">→ {to.label}</span>
-                          </>
-                        )}
-                    </p>
-                    <p className="mt-0.5 text-xs text-muted">
-                      {m.actor?.name ?? "—"} ·{" "}
-                      {new Date(m.createdAt).toLocaleString("pt-BR", {
-                        dateStyle: "short",
-                        timeStyle: "short",
-                      })}
-                    </p>
-                    {m.comment && (
-                      <p className="mt-1.5 whitespace-pre-wrap rounded-xl border border-line bg-canvas p-2.5 text-xs">
-                        {m.comment}
-                      </p>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
+          <div className="flex flex-col gap-3">
+            <DocumentTimeline movements={doc.movements} />
+            {/* O IP fica na tela cheia (E8.2), nao aqui: este painel e aberto tambem pelo
+                professor dono, e o IP e dado de auditoria restrito a coordenador e admin. */}
+            {me && canSeeReports(me.role) && (
+              <Link
+                href={`/documentos/${documentId}/historico`}
+                className="self-start text-xs text-primary no-underline"
+              >
+                Ver histórico completo, com IP →
+              </Link>
+            )}
+          </div>
         )}
+
       </div>
 
       {doc && (
@@ -300,34 +278,6 @@ export default function DocumentDetailPanel({
       )}
     </aside>
   );
-}
-
-/**
- * Movimento de reatribuição (E7.4): `transitionKey` nulo também marca a criação do documento,
- * então o discriminador tem que ser `detailsJson` — e o parse é defensivo porque o conteúdo é
- * texto livre no banco, não um contrato tipado.
- */
-function parseReassignDetails(
-  detailsJson: string | null
-): { fromAssigneeName: string | null; toAssigneeName: string | null } | null {
-  if (!detailsJson) return null;
-  try {
-    const parsed: unknown = JSON.parse(detailsJson);
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      (parsed as Record<string, unknown>).event === "reassign"
-    ) {
-      const p = parsed as Record<string, unknown>;
-      return {
-        fromAssigneeName: typeof p.fromAssigneeName === "string" ? p.fromAssigneeName : null,
-        toAssigneeName: typeof p.toAssigneeName === "string" ? p.toAssigneeName : null,
-      };
-    }
-    return null;
-  } catch {
-    return null;
-  }
 }
 
 function Info({ label, value }: { label: string; value: string }) {
