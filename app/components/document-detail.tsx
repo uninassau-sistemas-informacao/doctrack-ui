@@ -264,14 +264,18 @@ export default function DocumentDetailPanel({
           {transitions.length === 0 && (
             <p className="text-xs text-muted">Nenhuma ação disponível para você neste status.</p>
           )}
-          {(me?.role === "coordenador" || me?.role === "admin") && (
-            <button
-              onClick={() => setReassigning(true)}
-              className="flex cursor-pointer items-center gap-2 rounded-xl border border-line px-3 py-2 text-sm font-semibold text-primary"
-            >
-              <UserSwitchIcon size={14} /> Reatribuir
-            </button>
-          )}
+          {/* Documento em status final é registro fechado (tem protocolo): não muda de
+              responsável, pela mesma razão que não recebe anexo. Quem decide é a API (409) —
+              aqui a condição só evita oferecer uma ação que seria recusada. */}
+          {(me?.role === "coordenador" || me?.role === "admin") &&
+            doc.status.finalStatus === false && (
+              <button
+                onClick={() => setReassigning(true)}
+                className="flex cursor-pointer items-center gap-2 rounded-xl border border-line px-3 py-2 text-sm font-semibold text-primary"
+              >
+                <UserSwitchIcon size={14} /> Reatribuir
+              </button>
+            )}
         </footer>
       )}
 
