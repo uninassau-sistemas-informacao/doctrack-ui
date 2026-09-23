@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { canSeeReports } from "../../lib/api/dto/authSchema";
 import type { MeResponse } from "../../lib/api/dto/authSchema";
 import type { DocumentType } from "../../lib/api/dto/workflowSchema";
 import type { User } from "../lib/data";
@@ -49,6 +50,7 @@ export default function Shell({
         collapsed={collapsed}
         unreadCount={unreadCount}
         canManageUsers={me.manageableRoles.length > 0}
+        canSeeReports={canSeeReports(me.role)}
         onToggle={() => setCollapsed((c) => !c)}
       />
       <main className="flex min-w-0 flex-1 flex-col overflow-hidden">{children}</main>

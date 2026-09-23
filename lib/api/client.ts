@@ -87,6 +87,40 @@ async function parseResponse<T>(response: Response): Promise<T> {
   return (await response.json()) as T;
 }
 
+/**
+ * Baixa um arquivo da API (CSV/PDF dos relatórios e do histórico — E8.4).
+ *
+ * Fica ao lado do `apiFetch` e não dentro dele porque o `apiFetch` força
+ * `Content-Type: application/json` e sempre chama `response.json()`: um CSV ou
+ * um PDF quebrariam ali. Aqui a resposta é lida como `blob()`.
+ *
+ * Sem o retry de sessão do `apiFetch` nesta primeira versão: exportar é uma ação
+ * explícita do usuário, que pode repetir o clique se a sessão tiver expirado.
+ *
+ * O `revokeObjectURL` não é zelo: sem ele o blob fica retido na memória da aba
+ * até o reload, e um relatório grande baixado algumas vezes já pesa.
+ */
+export async function downloadFile(path: string, filename: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}${path}`, { credentials: "include" });
+
+  if (!response.ok) {
+    throw await toApiError(response);
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  try {
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await rawFetch(path, init);
 

@@ -5,6 +5,7 @@ import {
   BellIcon,
   CaretLeftIcon,
   CaretRightIcon,
+  ChartBarIcon,
   ColumnsIcon,
   FileTextIcon,
   GearIcon,
@@ -47,6 +48,7 @@ interface SidebarProps {
   collapsed: boolean;
   unreadCount: number;
   canManageUsers: boolean;
+  canSeeReports: boolean;
   onToggle: () => void;
 }
 
@@ -56,6 +58,7 @@ export default function Sidebar({
   collapsed,
   unreadCount,
   canManageUsers,
+  canSeeReports,
   onToggle,
 }: SidebarProps) {
   const router = useRouter();
@@ -89,9 +92,15 @@ export default function Sidebar({
     };
   });
 
+  // Relatórios entre os tipos e as notificações, e só para quem pode: coordenador e admin
+  // (E8.3). Esconder o item não é o controle de acesso — a rota guarda de novo no servidor e a
+  // API recusa com 403 —, mas oferecer um menu que sempre dá erro também não serve.
   const navItems: NavItem[] = [
     { key: "dashboard", icon: SquaresFourIcon, label: "Dashboard", href: "/" },
     ...typeItems,
+    ...(canSeeReports
+      ? [{ key: "relatorios", icon: ChartBarIcon, label: "Relatórios", href: "/relatorios" }]
+      : []),
     { key: "notificacoes", icon: BellIcon, label: "Notificações", href: "/notificacoes", badge: unreadCount },
   ];
 
