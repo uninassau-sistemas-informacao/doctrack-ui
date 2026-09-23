@@ -152,7 +152,10 @@ export default function ReportsView({ documentTypes }: { documentTypes: Document
           loading={throughput.isPending}
           empty={(throughput.data?.rows.length ?? 0) === 0}
           chart={(throughput.data?.rows ?? []).map<ChartDatum>((row) => ({
-            label: row.statusLabel,
+            key: `${row.typeKey}-${row.statusKey}`,
+            // O rótulo leva o tipo porque prova e ata têm ambas um "Rascunho": só o status
+            // deixaria duas barras diferentes com o mesmo nome no eixo.
+            label: `${row.typeName} · ${row.statusLabel}`,
             value: row.total,
           }))}
           headers={["Tipo", "Status", "Total"]}
@@ -173,7 +176,8 @@ export default function ReportsView({ documentTypes }: { documentTypes: Document
           horizontal
           valueSuffix=" h"
           chart={(sla.data?.rows ?? []).map<ChartDatum>((row) => ({
-            label: row.transitionLabel,
+            key: `${row.typeKey}-${row.transitionKey}`,
+            label: `${row.typeName} · ${row.transitionLabel}`,
             value: Number(row.avgHours.toFixed(1)),
           }))}
           headers={["Tipo", "Transição", "Média (h)", "Mediana (h)", "Amostras"]}
@@ -198,6 +202,7 @@ export default function ReportsView({ documentTypes }: { documentTypes: Document
           loading={volume.isPending}
           empty={(volume.data?.rows.length ?? 0) === 0}
           chart={(volume.data?.rows ?? []).map<ChartDatum>((row) => ({
+            key: row.role,
             label: row.roleLabel,
             value: row.total,
           }))}

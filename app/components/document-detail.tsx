@@ -209,7 +209,7 @@ export default function DocumentDetailPanel({
                 professor dono, e o IP e dado de auditoria restrito a coordenador e admin. */}
             {me && canSeeReports(me.role) && (
               <Link
-                href={`/documentos/${documentId}/historico`}
+                href={`/documentos/${doc.typeKey}/${documentId}/historico`}
                 className="self-start text-xs text-primary no-underline"
               >
                 Ver histórico completo, com IP →

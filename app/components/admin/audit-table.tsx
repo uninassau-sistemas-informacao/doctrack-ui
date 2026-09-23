@@ -213,8 +213,10 @@ function AuditRow({ row }: { row: AuditLogRow }) {
           <span className="text-muted">—</span>
         ) : (
           <ul className="flex flex-col gap-1">
-            {row.changes.map((change) => (
-              <li key={change.field} className="text-xs">
+            {/* Key com índice: uma revisão que reescreve várias linhas (lançamento de notas)
+                repete o mesmo campo, e só o nome colidiria. */}
+            {row.changes.map((change, index) => (
+              <li key={`${change.field}-${index}`} className="text-xs">
                 <span className="font-medium">{change.field}</span>{" "}
                 <span className="text-muted">
                   {change.from ?? "—"} → {change.to ?? "—"}

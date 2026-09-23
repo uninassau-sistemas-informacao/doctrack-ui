@@ -25,6 +25,8 @@ import {
 const COLORS = ["#185FA5", "#0F6E56", "#BA7517", "#6D28D9", "#993C1D", "#3B82F6"];
 
 export interface ChartDatum {
+  /** Identificador único da barra. Não é o rótulo: prova e ata têm ambas um "Rascunho". */
+  key: string;
   label: string;
   value: number;
 }
@@ -79,7 +81,7 @@ export default function ReportChart({
           />
           <Bar dataKey="value" radius={4}>
             {data.map((entry, index) => (
-              <Cell key={entry.label} fill={COLORS[index % COLORS.length]} />
+              <Cell key={entry.key} fill={COLORS[index % COLORS.length]} />
             ))}
           </Bar>
         </BarChart>

@@ -4,10 +4,10 @@ import { DownloadSimpleIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { ApiError } from "../../../../../lib/api/client";
-import { HistoryApi } from "../../../../../lib/api/history";
-import DocumentTimeline, { type TimelineRow } from "../../../../components/document-timeline";
-import PageHeader from "../../../../components/page-header";
+import { ApiError } from "../../../../../../lib/api/client";
+import { HistoryApi } from "../../../../../../lib/api/history";
+import DocumentTimeline, { type TimelineRow } from "../../../../../components/document-timeline";
+import PageHeader from "../../../../../components/page-header";
 
 const FILTER = "rounded-xl border border-line bg-white px-3 py-2 text-sm outline-none focus:border-primary";
 
@@ -21,7 +21,7 @@ const FILTER = "rounded-xl border border-line bg-white px-3 py-2 text-sm outline
  * O filtro por ator sai da própria lista, sem chamada extra: o histórico de um documento é
  * curto por natureza, e pedir os atores à API seria uma requisição para repetir o que já veio.
  */
-export default function HistoryView({ documentId }: { documentId: number }) {
+export default function HistoryView({ documentId, typeKey }: { documentId: number; typeKey: string }) {
   const [actorId, setActorId] = useState("");
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -52,7 +52,7 @@ export default function HistoryView({ documentId }: { documentId: number }) {
       <PageHeader
         title="Histórico do documento"
         subtitle={`${visible.length} movimentação(ões)`}
-        backHref={`/documentos?documento=${documentId}`}
+        backHref={`/documentos/${typeKey}?documento=${documentId}`}
       >
         <button
           onClick={handleExport}

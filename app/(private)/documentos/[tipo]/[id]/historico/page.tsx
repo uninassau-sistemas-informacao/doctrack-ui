@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { fetchMe } from "../../../../../lib/api/auth-server";
-import { canSeeReports } from "../../../../../lib/api/dto/authSchema";
+import { fetchMe } from "../../../../../../lib/api/auth-server";
+import { canSeeReports } from "../../../../../../lib/api/dto/authSchema";
 import HistoryView from "./history-view";
 
 /**
@@ -13,8 +13,8 @@ import HistoryView from "./history-view";
  * respondem à mesma pergunta ("este usuário audita?"). O professor dono do documento vê o
  * detalhe normalmente, mas não esta tela; a API recusa com 403 de qualquer forma.
  */
-export default async function HistoricoPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function HistoricoPage({ params }: { params: Promise<{ tipo: string; id: string }> }) {
+  const { tipo, id } = await params;
   const cookieStore = await cookies();
   const me = await fetchMe(cookieStore.toString());
 
@@ -25,5 +25,5 @@ export default async function HistoricoPage({ params }: { params: Promise<{ id: 
     redirect("/");
   }
 
-  return <HistoryView documentId={Number(id)} />;
+  return <HistoryView documentId={Number(id)} typeKey={tipo} />;
 }
