@@ -114,9 +114,12 @@ export default function AttachmentList({
         </div>
       )}
 
-      {error && (
+      {(error || listQuery.error) && (
         <p role="alert" className="text-sm text-[#993C1D]">
-          {error}
+          {error ??
+            (listQuery.error instanceof Error
+              ? listQuery.error.message
+              : "Não foi possível carregar os anexos.")}
         </p>
       )}
 

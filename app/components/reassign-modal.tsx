@@ -9,9 +9,12 @@ import { DocumentsApi } from "../../lib/api/documents";
 const FIELD = "rounded-xl border border-line bg-canvas px-3 py-2.5 text-sm outline-none focus:border-primary";
 
 /**
- * Reatribuição (E7.4, RF02.21). A lista de candidatos vem de `GET /users`, que já é hierárquico:
- * quem não pode ver um papel não o recebe na lista. Quem decide de fato é a API — 403 e 422 são
- * a fonte da verdade, e aparecem aqui como erro inline.
+ * Reatribuição (E7.4, RF02.21). A lista de candidatos vem de `GET /users`, que é a lista de
+ * gestão de usuários (hierarquia de `Role.manages()`) e não a de possíveis responsáveis — por
+ * isso um coordenador não vê aqui outros coordenadores nem a si mesmo, embora a API aceite
+ * qualquer usuário ativo que enxergue o documento. Um endpoint próprio de candidatos a
+ * responsável fica para depois. Quem decide de fato é a API — 403 e 422 são a fonte da
+ * verdade, e aparecem aqui como erro inline.
  */
 export default function ReassignModal({
   documentId,
@@ -60,6 +63,7 @@ export default function ReassignModal({
           className={`${FIELD} w-full`}
           value={assigneeId}
           onChange={(event) => setAssigneeId(event.target.value)}
+          disabled={usersQuery.isPending}
         >
           <option value="">Selecione</option>
           {candidates.map((user) => (
@@ -68,6 +72,24 @@ export default function ReassignModal({
             </option>
           ))}
         </select>
+
+        {usersQuery.isPending && (
+          <p className="mt-2 text-sm text-muted">Carregando usuários...</p>
+        )}
+
+        {usersQuery.error && (
+          <p role="alert" className="mt-2 text-sm text-[#993C1D]">
+            {usersQuery.error instanceof Error
+              ? usersQuery.error.message
+              : "Não foi possível carregar a lista de usuários."}
+          </p>
+        )}
+
+        {!usersQuery.isPending && !usersQuery.error && candidates.length === 0 && (
+          <p role="alert" className="mt-2 text-sm text-[#993C1D]">
+            Nenhum responsável disponível para reatribuição.
+          </p>
+        )}
 
         {error && (
           <p role="alert" className="mt-3 text-sm text-[#993C1D]">
@@ -79,7 +101,8 @@ export default function ReassignModal({
           <button
             type="button"
             onClick={onCancel}
-            className="cursor-pointer rounded-xl border border-line px-4 py-2.5 text-sm font-semibold text-muted"
+            disabled={mutation.isPending}
+            className="cursor-pointer rounded-xl border border-line px-4 py-2.5 text-sm font-semibold text-muted disabled:cursor-default disabled:opacity-60"
           >
             Cancelar
           </button>

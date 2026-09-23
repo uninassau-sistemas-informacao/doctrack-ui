@@ -267,7 +267,7 @@ export default function DocumentDetailPanel({
           {(me?.role === "coordenador" || me?.role === "admin") && (
             <button
               onClick={() => setReassigning(true)}
-              className="flex items-center gap-2 rounded-xl border border-line px-3 py-2 text-sm font-semibold text-primary"
+              className="flex cursor-pointer items-center gap-2 rounded-xl border border-line px-3 py-2 text-sm font-semibold text-primary"
             >
               <UserSwitchIcon size={14} /> Reatribuir
             </button>
