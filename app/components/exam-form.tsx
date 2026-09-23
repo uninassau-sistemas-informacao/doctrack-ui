@@ -234,12 +234,17 @@ export default function ExamForm({ exam }: { exam?: Exam }) {
         )}
       </section>
 
-      {/* Anexos chegam no E7; a área fica visível e desabilitada para não sumir do fluxo. */}
-      <section className="rounded-2xl border border-line bg-white p-5 opacity-60">
+      {/* Anexo pertence ao documento e exige que ele exista (FK). Em vez de segurar arquivo em
+          memória e subir depois de salvar — estado intermediário com falha própria —, a criação
+          orienta e o envio acontece na aba Anexos do detalhe, caminho único para todos os tipos. */}
+      <section className="rounded-2xl border border-line bg-white p-5">
         <h2 className="mb-3 text-base font-semibold">Anexos</h2>
         <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line py-8 text-center">
           <PaperclipIcon size={22} className="text-muted" />
-          <p className="text-sm text-muted">Envio de anexos disponível em breve.</p>
+          <p className="text-sm text-muted">
+            Salve o rascunho para anexar o arquivo na aba Anexos do documento.
+          </p>
+          <p className="text-xs text-muted">O anexo é obrigatório para enviar para revisão.</p>
         </div>
       </section>
 
