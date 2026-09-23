@@ -1,18 +1,21 @@
 "use client";
 
-import { XIcon, PencilSimpleIcon } from "@phosphor-icons/react";
+import { XIcon, PencilSimpleIcon, UserSwitchIcon } from "@phosphor-icons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
 
+import { AuthApi } from "../../lib/api/auth";
 import { DocumentsApi } from "../../lib/api/documents";
 import { ExamsApi } from "../../lib/api/exams";
 import type { DocumentDetail } from "../../lib/api/dto/documentSchema";
 import type { Exam } from "../../lib/api/dto/examSchema";
 import type { WorkflowTransition } from "../../lib/api/dto/workflowSchema";
 import { PRIORITY_CONFIG, badgeFromStatus, formatDate } from "../lib/data";
+import AttachmentList from "./attachment-list";
+import ReassignModal from "./reassign-modal";
 
-type Tab = "conteudo" | "historico";
+type Tab = "conteudo" | "anexos" | "historico";
 
 /**
  * Painel lateral de detalhe do documento (E2.5).
@@ -38,6 +41,9 @@ export default function DocumentDetailPanel({
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("conteudo");
   const [pending, setPending] = useState<WorkflowTransition | null>(null);
+  const [reassigning, setReassigning] = useState(false);
+
+  const { data: me } = useQuery({ queryKey: ["auth", "me"], queryFn: () => AuthApi.me() });
 
   // Detalhe, ações disponíveis e satélite vêm juntos: as três chamadas descrevem o mesmo
   // documento no mesmo instante, e separá-las deixaria os botões um passo atrás do status.
@@ -110,7 +116,7 @@ export default function DocumentDetailPanel({
       </header>
 
       <nav className="flex gap-1 border-b border-line px-5 pt-3">
-        {(["conteudo", "historico"] as const).map((t) => (
+        {(["conteudo", "anexos", "historico"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -118,7 +124,7 @@ export default function DocumentDetailPanel({
               tab === t ? "border-b-2 border-primary text-primary" : "text-muted"
             }`}
           >
-            {t === "conteudo" ? "Conteúdo" : `Histórico (${doc?.movements.length ?? 0})`}
+            {t === "conteudo" ? "Conteúdo" : t === "anexos" ? "Anexos" : `Histórico (${doc?.movements.length ?? 0})`}
           </button>
         ))}
       </nav>
@@ -190,10 +196,15 @@ export default function DocumentDetailPanel({
           </div>
         )}
 
+        {doc && tab === "anexos" && (
+          <AttachmentList documentId={documentId} canEdit={doc.status.finalStatus === false} />
+        )}
+
         {doc && tab === "historico" && (
           <ol className="flex flex-col gap-3">
             {doc.movements.map((m) => {
               const to = badgeFromStatus(m.toStatus);
+              const reassign = m.transitionKey === null ? parseReassignDetails(m.detailsJson) : null;
               return (
                 <li key={m.id} className="flex gap-3">
                   <span
@@ -202,8 +213,14 @@ export default function DocumentDetailPanel({
                   />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium">
-                      {m.transitionLabel ?? "Documento criado"}
-                      <span className="ml-1.5 font-normal text-muted">→ {to.label}</span>
+                      {reassign
+                        ? `Responsável alterado: ${reassign.fromAssigneeName ?? "—"} → ${reassign.toAssigneeName ?? "—"}`
+                        : (
+                          <>
+                            {m.transitionLabel ?? "Documento criado"}
+                            <span className="ml-1.5 font-normal text-muted">→ {to.label}</span>
+                          </>
+                        )}
                     </p>
                     <p className="mt-0.5 text-xs text-muted">
                       {m.actor?.name ?? "—"} ·{" "}
@@ -247,6 +264,18 @@ export default function DocumentDetailPanel({
           {transitions.length === 0 && (
             <p className="text-xs text-muted">Nenhuma ação disponível para você neste status.</p>
           )}
+          {/* Documento em status final é registro fechado (tem protocolo): não muda de
+              responsável, pela mesma razão que não recebe anexo. Quem decide é a API (409) —
+              aqui a condição só evita oferecer uma ação que seria recusada. */}
+          {(me?.role === "coordenador" || me?.role === "admin") &&
+            doc.status.finalStatus === false && (
+              <button
+                onClick={() => setReassigning(true)}
+                className="flex cursor-pointer items-center gap-2 rounded-xl border border-line px-3 py-2 text-sm font-semibold text-primary"
+              >
+                <UserSwitchIcon size={14} /> Reatribuir
+              </button>
+            )}
         </footer>
       )}
 
@@ -257,8 +286,48 @@ export default function DocumentDetailPanel({
           onConfirm={(comment) => runTransition(pending, comment)}
         />
       )}
+
+      {reassigning && doc && (
+        <ReassignModal
+          documentId={documentId}
+          currentAssigneeId={doc.assignee?.id ?? null}
+          onCancel={() => setReassigning(false)}
+          onDone={() => {
+            setReassigning(false);
+            onChanged?.();
+          }}
+        />
+      )}
     </aside>
   );
+}
+
+/**
+ * Movimento de reatribuição (E7.4): `transitionKey` nulo também marca a criação do documento,
+ * então o discriminador tem que ser `detailsJson` — e o parse é defensivo porque o conteúdo é
+ * texto livre no banco, não um contrato tipado.
+ */
+function parseReassignDetails(
+  detailsJson: string | null
+): { fromAssigneeName: string | null; toAssigneeName: string | null } | null {
+  if (!detailsJson) return null;
+  try {
+    const parsed: unknown = JSON.parse(detailsJson);
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      (parsed as Record<string, unknown>).event === "reassign"
+    ) {
+      const p = parsed as Record<string, unknown>;
+      return {
+        fromAssigneeName: typeof p.fromAssigneeName === "string" ? p.fromAssigneeName : null,
+        toAssigneeName: typeof p.toAssigneeName === "string" ? p.toAssigneeName : null,
+      };
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 function Info({ label, value }: { label: string; value: string }) {
