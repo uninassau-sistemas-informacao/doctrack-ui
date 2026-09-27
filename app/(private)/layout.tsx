@@ -28,6 +28,12 @@ export default async function PrivateLayout({
     redirect("/login");
   }
 
+  // Aceite de termos pendente (E9/U3): manda para `/aceite-termos`, que fica FORA deste grupo
+  // `(private)` — se estivesse dentro, este mesmo guard voltaria a redirecionar para lá de novo.
+  if (me.termsPending) {
+    redirect("/aceite-termos");
+  }
+
   // Só depois de confirmar a sessão: sem cookie válido a chamada voltaria 401 de graça.
   const documentTypes = await fetchDocumentTypes(cookieStore.toString());
 

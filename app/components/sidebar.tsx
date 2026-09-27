@@ -5,6 +5,7 @@ import {
   BellIcon,
   CaretLeftIcon,
   CaretRightIcon,
+  ChartBarIcon,
   ColumnsIcon,
   FileTextIcon,
   GearIcon,
@@ -47,6 +48,7 @@ interface SidebarProps {
   collapsed: boolean;
   unreadCount: number;
   canManageUsers: boolean;
+  canSeeReports: boolean;
   onToggle: () => void;
 }
 
@@ -56,6 +58,7 @@ export default function Sidebar({
   collapsed,
   unreadCount,
   canManageUsers,
+  canSeeReports,
   onToggle,
 }: SidebarProps) {
   const router = useRouter();
@@ -89,9 +92,15 @@ export default function Sidebar({
     };
   });
 
+  // Relatórios entre os tipos e as notificações, e só para quem pode: coordenador e admin
+  // (E8.3). Esconder o item não é o controle de acesso — a rota guarda de novo no servidor e a
+  // API recusa com 403 —, mas oferecer um menu que sempre dá erro também não serve.
   const navItems: NavItem[] = [
     { key: "dashboard", icon: SquaresFourIcon, label: "Dashboard", href: "/" },
     ...typeItems,
+    ...(canSeeReports
+      ? [{ key: "relatorios", icon: ChartBarIcon, label: "Relatórios", href: "/relatorios" }]
+      : []),
     { key: "notificacoes", icon: BellIcon, label: "Notificações", href: "/notificacoes", badge: unreadCount },
   ];
 
@@ -175,7 +184,13 @@ export default function Sidebar({
       </nav>
 
       <div className="border-t border-line-soft p-3">
-        <div className="flex items-center gap-2.5 overflow-hidden">
+        <Link
+          href="/perfil"
+          title="Meu perfil"
+          className={`-m-1 flex items-center gap-2.5 overflow-hidden rounded-xl p-1 no-underline ${
+            isActive(pathname, "/perfil") ? "bg-primary-soft" : ""
+          }`}
+        >
           <span
             className="flex size-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
             style={{ background: user.avatarColor }}
@@ -184,11 +199,17 @@ export default function Sidebar({
           </span>
           {expanded && (
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-semibold">{user.name}</p>
+              <p
+                className={`truncate text-xs font-semibold ${
+                  isActive(pathname, "/perfil") ? "text-primary" : ""
+                }`}
+              >
+                {user.name}
+              </p>
               <p className="text-xs text-muted">{ROLE_LABELS[user.role]}</p>
             </div>
           )}
-        </div>
+        </Link>
         {expanded && (
           <button
             onClick={handleSignOut}

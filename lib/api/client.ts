@@ -8,7 +8,7 @@
  *   uma única vez (guard anti-loop). Se o refresh falhar, dispara o evento
  *   `session:expired` na window para a UI redirecionar ao login.
  * - Erros do backend (`{message, code, status}`) viram `ApiError`.
- * - Respostas 204 resolvem para `undefined`.
+ * - Respostas sem corpo resolvem para `undefined`.
  */
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
@@ -81,10 +81,44 @@ function dispatchSessionExpired(): void {
 }
 
 async function parseResponse<T>(response: Response): Promise<T> {
-  if (response.status === 204) {
-    return undefined as T;
+  // Qualquer 2xx pode vir sem corpo (logout responde 200 vazio): ler texto e só parsear se houver.
+  // A guarda mora aqui, no ponto compartilhado, para fechar todos os endpoints de uma vez.
+  const text = await response.text();
+  return (text ? JSON.parse(text) : undefined) as T;
+}
+
+/**
+ * Baixa um arquivo da API (CSV/PDF dos relatórios e do histórico — E8.4).
+ *
+ * Fica ao lado do `apiFetch` e não dentro dele porque o `apiFetch` força
+ * `Content-Type: application/json` e sempre chama `response.json()`: um CSV ou
+ * um PDF quebrariam ali. Aqui a resposta é lida como `blob()`.
+ *
+ * Sem o retry de sessão do `apiFetch` nesta primeira versão: exportar é uma ação
+ * explícita do usuário, que pode repetir o clique se a sessão tiver expirado.
+ *
+ * O `revokeObjectURL` não é zelo: sem ele o blob fica retido na memória da aba
+ * até o reload, e um relatório grande baixado algumas vezes já pesa.
+ */
+export async function downloadFile(path: string, filename: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}${path}`, { credentials: "include" });
+
+  if (!response.ok) {
+    throw await toApiError(response);
   }
-  return (await response.json()) as T;
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  try {
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
