@@ -50,7 +50,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-  // Roda em toda rota privada, excluindo as públicas, assets estáticos e o próprio proxy da
-  // API (rewrite de /api/v1 em next.config.ts) — esses nunca devem exigir sessão aqui.
-  matcher: ["/((?!api|login|cadastro|_next/static|_next/image|favicon.ico).*)"],
+  // Roda em toda rota privada, excluindo as públicas — login, cadastro, recuperar/redefinir
+  // senha e termos (E9) —, assets estáticos e o próprio proxy da API (rewrite de /api/v1 em
+  // next.config.ts) — esses nunca devem exigir sessão aqui.
+  matcher: [
+    "/((?!api|login|cadastro|recuperar-senha|redefinir-senha|termos|_next/static|_next/image|favicon.ico).*)",
+  ],
 };
