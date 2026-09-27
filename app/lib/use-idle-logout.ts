@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 
 import { AuthApi } from "../../lib/api/auth";
 
-const IDLE_MS = Number(process.env.NEXT_PUBLIC_SESSION_IDLE_MINUTES ?? "30") * 60_000;
+// Env mal configurada não pode desligar nem travar o logout: NaN nunca expiraria e 0 deslogaria
+// em loop logo após cada login — qualquer valor que não seja número finito > 0 cai para 30 min.
+const IDLE_MINUTES = Number(process.env.NEXT_PUBLIC_SESSION_IDLE_MINUTES);
+const IDLE_MS = (Number.isFinite(IDLE_MINUTES) && IDLE_MINUTES > 0 ? IDLE_MINUTES : 30) * 60_000;
 const WARNING_MS = Math.min(60_000, IDLE_MS / 2);
 const STORAGE_KEY = "doctrack:last-activity";
 const WRITE_THROTTLE_MS = 5_000;
