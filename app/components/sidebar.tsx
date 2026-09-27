@@ -184,7 +184,13 @@ export default function Sidebar({
       </nav>
 
       <div className="border-t border-line-soft p-3">
-        <div className="flex items-center gap-2.5 overflow-hidden">
+        <Link
+          href="/perfil"
+          title="Meu perfil"
+          className={`-m-1 flex items-center gap-2.5 overflow-hidden rounded-xl p-1 no-underline ${
+            isActive(pathname, "/perfil") ? "bg-primary-soft" : ""
+          }`}
+        >
           <span
             className="flex size-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
             style={{ background: user.avatarColor }}
@@ -193,11 +199,17 @@ export default function Sidebar({
           </span>
           {expanded && (
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-semibold">{user.name}</p>
+              <p
+                className={`truncate text-xs font-semibold ${
+                  isActive(pathname, "/perfil") ? "text-primary" : ""
+                }`}
+              >
+                {user.name}
+              </p>
               <p className="text-xs text-muted">{ROLE_LABELS[user.role]}</p>
             </div>
           )}
-        </div>
+        </Link>
         {expanded && (
           <button
             onClick={handleSignOut}
