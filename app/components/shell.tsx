@@ -6,7 +6,9 @@ import { canSeeReports } from "../../lib/api/dto/authSchema";
 import type { MeResponse } from "../../lib/api/dto/authSchema";
 import type { DocumentType } from "../../lib/api/dto/workflowSchema";
 import type { User } from "../lib/data";
+import { useIdleLogout } from "../lib/use-idle-logout";
 import { useUnreadCount } from "../lib/use-unread-count";
+import IdleWarningModal from "./idle-warning-modal";
 import Sidebar from "./sidebar";
 
 /** Cores de avatar por posição — o backend não guarda cor de usuário. */
@@ -41,9 +43,11 @@ export default function Shell({
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const unreadCount = useUnreadCount();
+  const { secondsLeft, stayConnected } = useIdleLogout();
 
   return (
     <div className="flex h-screen overflow-hidden bg-canvas text-ink">
+      <IdleWarningModal secondsLeft={secondsLeft} onStay={stayConnected} />
       <Sidebar
         user={toUser(me)}
         documentTypes={documentTypes}
