@@ -8,7 +8,7 @@
  *   uma única vez (guard anti-loop). Se o refresh falhar, dispara o evento
  *   `session:expired` na window para a UI redirecionar ao login.
  * - Erros do backend (`{message, code, status}`) viram `ApiError`.
- * - Respostas 204 resolvem para `undefined`.
+ * - Respostas sem corpo resolvem para `undefined`.
  */
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
@@ -81,10 +81,10 @@ function dispatchSessionExpired(): void {
 }
 
 async function parseResponse<T>(response: Response): Promise<T> {
-  if (response.status === 204) {
-    return undefined as T;
-  }
-  return (await response.json()) as T;
+  // Qualquer 2xx pode vir sem corpo (logout responde 200 vazio): ler texto e só parsear se houver.
+  // A guarda mora aqui, no ponto compartilhado, para fechar todos os endpoints de uma vez.
+  const text = await response.text();
+  return (text ? JSON.parse(text) : undefined) as T;
 }
 
 /**

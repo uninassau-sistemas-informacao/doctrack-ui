@@ -28,4 +28,18 @@ export const AuthApi = {
     const data = await apiFetch<unknown>("/auth/me");
     return meResponseSchema.parse(data);
   },
+
+  async forgotPassword(email: string): Promise<void> {
+    await apiFetch<void>("/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    await apiFetch<void>("/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, newPassword }),
+    });
+  },
 };

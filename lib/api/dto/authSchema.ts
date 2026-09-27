@@ -31,6 +31,8 @@ export const meResponseSchema = z.object({
   role: roleSchema,
   /** Papéis que este usuário pode criar/editar — a hierarquia vem da API, nunca duplicada aqui. */
   manageableRoles: z.array(roleSchema),
+  /** Aceite de termos pendente (E9) — dispara o redirect para `/aceite-termos`. */
+  termsPending: z.boolean(),
 });
 
 export type MeResponse = z.infer<typeof meResponseSchema>;
