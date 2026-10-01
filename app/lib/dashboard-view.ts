@@ -11,11 +11,12 @@ import {
   PrinterIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
+import type { Priority } from "../../lib/api/dto/documentSchema";
 import type { Dashboard, DashboardKpi } from "../../lib/api/dto/dashboardSchema";
 import type { ExamCard } from "../../lib/api/dto/examSchema";
 import type { Notification } from "../../lib/api/dto/notificationSchema";
 import type { RecordCard } from "../../lib/api/dto/recordSchema";
-import { NOTIF_DOT, PRIORITY_CONFIG, badgeFromStatus, formatDate, formatDateTime } from "./data";
+import { NOTIF_DOT, badgeFromStatus, formatDate, formatDateTime, soft } from "./data";
 
 export interface KpiView {
   /** Identificador estável vindo da API — é ele que chaveia a lista, não o rótulo. */
@@ -49,7 +50,7 @@ export interface PanelItemView {
   titleSize: number;
   titleWeight: number;
   sub?: string;
-  prioColor?: string;
+  prio?: Priority;
   badge?: BadgeView;
 }
 
@@ -58,6 +59,8 @@ export interface PanelView {
   title: string;
   warn?: boolean;
   linkLabel?: string;
+  /** Destino do link do cabeçalho e dos itens do painel (no protótipo, ambos navegam). */
+  href: string;
   fullWidth?: boolean;
   empty: { icon: Icon; title: string; desc: string };
   items: PanelItemView[];
@@ -70,7 +73,7 @@ export interface ExamRowView {
   class: string;
   date: string;
   status: BadgeView;
-  priority: BadgeView;
+  priority: Priority;
 }
 
 export interface DashboardView {
@@ -83,8 +86,9 @@ export interface DashboardView {
 const ITEM_DEFAULTS = {
   align: "center" as const,
   padding: 12,
-  bg: "transparent",
-  border: "rgba(0,0,0,0.09)",
+  // Sem fundo inline: deixa o hover:bg-surface-2 do item agir.
+  bg: "",
+  border: "var(--line)",
   titleSize: 14,
   titleWeight: 500,
 };
@@ -95,24 +99,24 @@ const ITEM_DEFAULTS = {
  * de quebrar a tela.
  */
 const KPI_STYLE: Record<string, { icon: Icon; color: string; bg: string }> = {
-  rascunhos: { icon: FileTextIcon, color: "#717182", bg: "#ececf0" },
-  aguardando_revisao: { icon: ClockIcon, color: "#BA7517", bg: "#FEF3DC" },
-  aprovadas: { icon: CheckCircleIcon, color: "#0F6E56", bg: "#E6F4F0" },
-  reprovadas: { icon: XCircleIcon, color: "#993C1D", bg: "#FCEAE4" },
-  para_revisar: { icon: ClockIcon, color: "#BA7517", bg: "#FEF3DC" },
-  em_revisao: { icon: FileTextIcon, color: "#185FA5", bg: "#EEF4FB" },
-  atas_para_validar: { icon: ClipboardTextIcon, color: "#6B45C8", bg: "#F0EBFD" },
-  fila_impressao: { icon: PrinterIcon, color: "#185FA5", bg: "#EEF4FB" },
-  imprimindo: { icon: ClockIcon, color: "#6B45C8", bg: "#F0EBFD" },
-  para_arquivar: { icon: ArchiveIcon, color: "#BA7517", bg: "#FEF3DC" },
-  concluidas: { icon: CheckCircleIcon, color: "#0F6E56", bg: "#E6F4F0" },
-  atas_para_homologar: { icon: ClipboardTextIcon, color: "#BA7517", bg: "#FEF3DC" },
-  homologadas: { icon: CheckCircleIcon, color: "#0F6E56", bg: "#E6F4F0" },
-  arquivadas: { icon: ArchiveIcon, color: "#717182", bg: "#ececf0" },
-  total_provas: { icon: BookOpenIcon, color: "#185FA5", bg: "#EEF4FB" },
+  rascunhos: { icon: FileTextIcon, color: "var(--neutral)", bg: soft("var(--neutral)") },
+  aguardando_revisao: { icon: ClockIcon, color: "var(--warning)", bg: soft("var(--warning)") },
+  aprovadas: { icon: CheckCircleIcon, color: "var(--success)", bg: soft("var(--success)") },
+  reprovadas: { icon: XCircleIcon, color: "var(--danger)", bg: soft("var(--danger)") },
+  para_revisar: { icon: ClockIcon, color: "var(--warning)", bg: soft("var(--warning)") },
+  em_revisao: { icon: FileTextIcon, color: "var(--info)", bg: soft("var(--info)") },
+  atas_para_validar: { icon: ClipboardTextIcon, color: "var(--violet)", bg: soft("var(--violet)") },
+  fila_impressao: { icon: PrinterIcon, color: "var(--info)", bg: soft("var(--info)") },
+  imprimindo: { icon: ClockIcon, color: "var(--violet)", bg: soft("var(--violet)") },
+  para_arquivar: { icon: ArchiveIcon, color: "var(--warning)", bg: soft("var(--warning)") },
+  concluidas: { icon: CheckCircleIcon, color: "var(--success)", bg: soft("var(--success)") },
+  atas_para_homologar: { icon: ClipboardTextIcon, color: "var(--warning)", bg: soft("var(--warning)") },
+  homologadas: { icon: CheckCircleIcon, color: "var(--success)", bg: soft("var(--success)") },
+  arquivadas: { icon: ArchiveIcon, color: "var(--neutral)", bg: soft("var(--neutral)") },
+  total_provas: { icon: BookOpenIcon, color: "var(--info)", bg: soft("var(--info)") },
 };
 
-const NEUTRAL_KPI = { icon: FileTextIcon, color: "#717182", bg: "#ececf0" };
+const NEUTRAL_KPI = { icon: FileTextIcon, color: "var(--neutral)", bg: soft("var(--neutral)") };
 
 function kpiView(kpi: DashboardKpi): KpiView {
   const style = KPI_STYLE[kpi.key] ?? NEUTRAL_KPI;
@@ -160,17 +164,17 @@ export function buildDashboardView(data: Dashboard, notifications: Notification[
       kpis,
       panels: [
         {
-          key: "pending-actions",
+          key: "pending-actions", href: "/provas",
           title: "Ações Pendentes",
           warn: true,
           empty: { icon: CheckCircleIcon, title: "Tudo em dia!", desc: "Não há provas aguardando sua atenção." },
           items: p.pendingActions.map((exam) =>
             examItem(exam, {
               align: "flex-start",
-              bg: "#FCEAE4",
-              border: "#f0a58a",
+              bg: soft("var(--danger)", 10),
+              border: soft("var(--danger)", 40),
               icon: XCircleIcon,
-              iconColor: "#993C1D",
+              iconColor: "var(--danger)",
               iconBg: "transparent",
               iconBox: 16,
               iconSize: 16,
@@ -179,7 +183,7 @@ export function buildDashboardView(data: Dashboard, notifications: Notification[
           ),
         },
         {
-          key: "recent-notifications",
+          key: "recent-notifications", href: "/notificacoes",
           title: "Notificações Recentes",
           linkLabel: "Ver todas",
           empty: {
@@ -202,7 +206,6 @@ export function buildDashboardView(data: Dashboard, notifications: Notification[
       ],
       examRows: p.myExams.map((exam) => {
         const s = badgeFromStatus(exam.document.status);
-        const prio = PRIORITY_CONFIG[exam.document.priority];
         return {
           key: String(exam.id),
           title: exam.document.title,
@@ -210,7 +213,7 @@ export function buildDashboardView(data: Dashboard, notifications: Notification[
           class: exam.classGroup,
           date: formatDate(exam.applicationDate),
           status: { label: s.label, bg: s.bg, color: s.color },
-          priority: { label: prio.label, bg: prio.bg, color: prio.color },
+          priority: exam.document.priority,
         };
       }),
     };
@@ -222,18 +225,18 @@ export function buildDashboardView(data: Dashboard, notifications: Notification[
       kpis,
       panels: [
         {
-          key: "review-queue",
+          key: "review-queue", href: "/provas",
           title: "Fila de Revisão — Provas",
           empty: { icon: CheckCircleIcon, title: "Nenhuma prova pendente", desc: "Tudo revisado!" },
           items: p.reviewQueue.map((exam) =>
             examItem(exam, {
               sub: `${exam.discipline} · ${(exam.document.requester?.name ?? "—").split(" ")[0]}`,
-              prioColor: PRIORITY_CONFIG[exam.document.priority].color,
+              prio: exam.document.priority,
             })
           ),
         },
         {
-          key: "records-to-validate",
+          key: "records-to-validate", href: "/atas",
           title: "Atas Aguardando Validação",
           empty: { icon: CheckCircleIcon, title: "Nenhuma ata pendente", desc: "Todas as atas foram validadas." },
           items: p.recordsToValidate.map((record) => recordItem(record)),
@@ -249,25 +252,25 @@ export function buildDashboardView(data: Dashboard, notifications: Notification[
       kpis,
       panels: [
         {
-          key: "print-queue",
+          key: "print-queue", href: "/provas",
           title: "Fila de Impressão",
           linkLabel: "Ver quadro",
           empty: { icon: PrinterIcon, title: "Fila vazia", desc: "Nenhuma prova aguardando impressão." },
           items: p.printQueue.map((exam) =>
             examItem(exam, {
               icon: PrinterIcon,
-              iconColor: "#185FA5",
-              iconBg: "#EEF4FB",
+              iconColor: "var(--info)",
+              iconBg: soft("var(--info)"),
               iconBox: 32,
               iconSize: 16,
               sub: `${exam.discipline} · Turma ${exam.classGroup}`,
               badge: undefined,
-              prioColor: PRIORITY_CONFIG[exam.document.priority].color,
+              prio: exam.document.priority,
             })
           ),
         },
         {
-          key: "to-archive",
+          key: "to-archive", href: "/atas",
           title: "Documentos para Arquivar",
           linkLabel: "Ver atas",
           empty: { icon: ArchiveIcon, title: "Nada para arquivar", desc: "Todos os documentos estão arquivados." },
@@ -287,7 +290,7 @@ export function buildDashboardView(data: Dashboard, notifications: Notification[
     kpis,
     panels: [
       {
-        key: "records-to-homologate",
+        key: "records-to-homologate", href: "/atas",
         title: "Atas Aguardando Homologação",
         linkLabel: "Ver módulo de atas",
         fullWidth: true,
@@ -296,8 +299,8 @@ export function buildDashboardView(data: Dashboard, notifications: Notification[
           recordItem(record, {
             padding: 16,
             icon: FileTextIcon,
-            iconColor: "#185FA5",
-            iconBg: "#EEF4FB",
+            iconColor: "var(--info)",
+            iconBg: soft("var(--info)"),
             iconBox: 40,
             iconSize: 18,
             titleWeight: 600,

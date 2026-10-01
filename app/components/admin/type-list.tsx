@@ -135,7 +135,7 @@ export default function TypeList() {
       </div>
 
       {failure && (
-        <p role="alert" className="text-sm text-[#993C1D]">
+        <p role="alert" className="text-sm text-danger">
           {typeof failure === "string"
             ? failure
             : failure instanceof ApiError
@@ -147,7 +147,7 @@ export default function TypeList() {
       {!loaded && <p className="text-sm text-muted">Carregando…</p>}
 
       {loaded && types.length === 0 && (
-        <p className="rounded-2xl border border-line bg-white px-4 py-6 text-sm text-muted">
+        <p className="rounded-2xl border border-line bg-surface px-4 py-6 text-sm text-muted">
           Nenhum tipo de documento cadastrado.
         </p>
       )}
@@ -161,7 +161,7 @@ export default function TypeList() {
               className={`cursor-pointer rounded-xl border px-4 py-2 text-sm font-medium ${
                 type.key === selectedKey
                   ? "border-primary bg-primary-soft text-primary"
-                  : "border-line bg-white text-muted"
+                  : "border-line bg-surface text-muted"
               }`}
             >
               {type.name}
@@ -173,7 +173,7 @@ export default function TypeList() {
 
       {detail && (
         <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-white px-4 py-3">
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3">
             <div>
               <p className="text-sm font-semibold">{detail.name}</p>
               <p className="text-xs text-muted">
@@ -201,7 +201,7 @@ export default function TypeList() {
             </div>
           </div>
 
-          <section className="overflow-hidden rounded-2xl border border-line bg-white">
+          <section className="overflow-hidden rounded-2xl border border-line bg-surface">
             <header className="flex items-center justify-between border-b border-line bg-canvas px-4 py-3">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Status</h3>
               <button
@@ -263,7 +263,7 @@ export default function TypeList() {
             )}
           </section>
 
-          <section className="overflow-hidden rounded-2xl border border-line bg-white">
+          <section className="overflow-hidden rounded-2xl border border-line bg-surface">
             <header className="flex items-center justify-between border-b border-line bg-canvas px-4 py-3">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Transições</h3>
               <button

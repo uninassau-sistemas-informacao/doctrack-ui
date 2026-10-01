@@ -22,7 +22,7 @@ import {
  * As cores vêm em hex literal porque Recharts pinta SVG — classe do Tailwind não chega lá.
  * São as mesmas da paleta já usada na aplicação.
  */
-const COLORS = ["#185FA5", "#0F6E56", "#BA7517", "#6D28D9", "#993C1D", "#3B82F6"];
+const COLORS = ["var(--info)", "var(--success)", "var(--warning)", "var(--violet)", "var(--danger)", "#3B82F6"];
 
 export interface ChartDatum {
   /** Identificador único da barra. Não é o rótulo: prova e ata têm ambas um "Rascunho". */
@@ -59,18 +59,18 @@ export default function ReportChart({
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.07)" vertical={!horizontal} />
           {horizontal ? (
             <>
-              <XAxis type="number" tick={{ fontSize: 12, fill: "#717182" }} />
+              <XAxis type="number" tick={{ fontSize: 12, fill: "var(--neutral)" }} />
               <YAxis
                 type="category"
                 dataKey="label"
                 width={150}
-                tick={{ fontSize: 12, fill: "#717182" }}
+                tick={{ fontSize: 12, fill: "var(--neutral)" }}
               />
             </>
           ) : (
             <>
-              <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#717182" }} interval={0} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "#717182" }} />
+              <XAxis dataKey="label" tick={{ fontSize: 12, fill: "var(--neutral)" }} interval={0} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "var(--neutral)" }} />
             </>
           )}
           <Tooltip

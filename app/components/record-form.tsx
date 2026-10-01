@@ -84,7 +84,7 @@ export default function RecordForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
-      <section className="rounded-2xl border border-line bg-white p-5">
+      <section className="rounded-2xl border border-line bg-surface p-5">
         <h2 className="mb-4 text-base font-semibold">Dados da ata</h2>
         <div className="grid grid-cols-2 gap-4">
           <Field label="Título" error={fieldErrors.title} className="col-span-2">
@@ -152,13 +152,13 @@ export default function RecordForm() {
       </section>
 
       {classGroupsQuery.error && (
-        <p role="alert" className="text-sm text-[#993C1D]">
+        <p role="alert" className="text-sm text-danger">
           {classGroupsQuery.error.message}
         </p>
       )}
 
       {formError && (
-        <p role="alert" className="text-sm text-[#993C1D]">
+        <p role="alert" className="text-sm text-danger">
           {formError}
         </p>
       )}
@@ -198,7 +198,7 @@ function Field({
     <div className={`flex flex-col gap-1.5 ${className}`}>
       <label className="text-sm font-medium">{label}</label>
       {children}
-      {error && <p className="text-xs text-[#993C1D]">{error}</p>}
+      {error && <p className="text-xs text-danger">{error}</p>}
     </div>
   );
 }

@@ -9,7 +9,7 @@ import { HistoryApi } from "../../../../../../lib/api/history";
 import DocumentTimeline, { type TimelineRow } from "../../../../../components/document-timeline";
 import PageHeader from "../../../../../components/page-header";
 
-const FILTER = "rounded-xl border border-line bg-white px-3 py-2 text-sm outline-none focus:border-primary";
+const FILTER = "rounded-xl border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-primary";
 
 /**
  * Histórico completo com filtro por ator e exportação CSV (E8.2).
@@ -57,13 +57,13 @@ export default function HistoryView({ documentId, typeKey }: { documentId: numbe
         <button
           onClick={handleExport}
           disabled={exporting || rows.length === 0}
-          className="flex items-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-muted disabled:opacity-50"
+          className="flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-semibold text-muted disabled:opacity-50"
         >
           <DownloadSimpleIcon size={15} /> {exporting ? "Baixando…" : "Exportar CSV"}
         </button>
       </PageHeader>
 
-      <div className="flex flex-wrap items-center gap-3 border-b border-line bg-white px-6 py-3">
+      <div className="flex flex-wrap items-center gap-3 border-b border-line bg-surface px-6 py-3">
         <select className={FILTER} value={actorId} onChange={(event) => setActorId(event.target.value)}>
           <option value="">Todos os responsáveis</option>
           {actors.map((actor) => (
@@ -78,13 +78,13 @@ export default function HistoryView({ documentId, typeKey }: { documentId: numbe
         {isPending && <p className="text-sm text-muted">Carregando histórico…</p>}
 
         {error && (
-          <p role="alert" className="text-sm text-[#993C1D]">
+          <p role="alert" className="text-sm text-danger">
             {error instanceof ApiError ? error.message : "Não foi possível carregar o histórico."}
           </p>
         )}
 
         {exportError && (
-          <p role="alert" className="mb-3 text-sm text-[#993C1D]">
+          <p role="alert" className="mb-3 text-sm text-danger">
             {exportError}
           </p>
         )}
@@ -94,7 +94,7 @@ export default function HistoryView({ documentId, typeKey }: { documentId: numbe
         )}
 
         {visible.length > 0 && (
-          <div className="rounded-2xl border border-line bg-white p-5">
+          <div className="rounded-2xl border border-line bg-surface p-5">
             <DocumentTimeline movements={visible as TimelineRow[]} showIp />
           </div>
         )}

@@ -1,9 +1,11 @@
 "use client";
 
+import { ClipboardTextIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import type { Document } from "../../../lib/api/dto/documentSchema";
 import type { WorkflowStatus } from "../../../lib/api/dto/workflowSchema";
+import { soft } from "../../lib/data";
 
 /**
  * Kanban genérico: colunas vêm de `workflow_statuses` do tipo (API), nunca de constante,
@@ -49,14 +51,14 @@ export default function KanbanBoard<T extends Document>({
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
       {dropError && (
-        <p role="alert" className="text-sm text-[#993C1D]">
+        <p role="alert" className="text-sm text-danger">
           {dropError}
         </p>
       )}
 
-      <div className="flex gap-4 overflow-x-auto pb-2">
+      <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto pb-2">
         {columns.map((status) => {
           const columnItems = items.filter((i) => i.status.key === status.key);
           const isOver = overStatusId === status.id && draggingId !== null;
@@ -74,19 +76,29 @@ export default function KanbanBoard<T extends Document>({
                 e.preventDefault();
                 void handleDrop(status);
               }}
-              className={`flex w-[280px] shrink-0 flex-col rounded-2xl border bg-canvas p-3 ${
-                isOver ? "border-primary bg-primary-soft" : "border-line"
-              }`}
+              // Coluna do protótipo (KanbanColumn.tsx): fundo neutro translúcido, borda só ao
+              // receber um card arrastado, na cor do status de destino.
+              className="flex min-h-[500px] w-[288px] shrink-0 flex-col rounded-2xl border-2 bg-surface-2/50 transition-colors"
+              style={
+                isOver
+                  ? { background: soft(status.color, 10), borderColor: soft(status.color, 50) }
+                  : { borderColor: "transparent" }
+              }
             >
-              <header className="mb-3 flex items-center gap-2 px-1">
-                <span className="size-2 shrink-0 rounded-full" style={{ background: status.color }} />
-                <h2 className="truncate text-sm font-semibold">{status.label}</h2>
-                <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-muted">
+              <header className="flex items-center justify-between px-4 py-4">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="size-2.5 shrink-0 rounded-full" style={{ background: status.color }} />
+                  <h2 className="truncate text-xs font-semibold">{status.label}</h2>
+                </div>
+                <span
+                  className="min-w-[22px] rounded-full px-2 py-0.5 text-center text-xs font-bold"
+                  style={{ background: soft(status.color), color: status.color }}
+                >
                   {columnItems.length}
                 </span>
               </header>
 
-              <div className="flex min-h-[80px] flex-col gap-2">
+              <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 pb-4">
                 {columnItems.map((item) => (
                   <div
                     key={item.id}
@@ -97,16 +109,27 @@ export default function KanbanBoard<T extends Document>({
                       setOverStatusId(null);
                     }}
                     onClick={() => onCardClick?.(item)}
-                    className={`cursor-pointer rounded-xl border border-line bg-white p-3 shadow-[0_1px_2px_rgba(0,0,0,.04)] ${
-                      draggingId === item.id ? "opacity-50" : ""
+                    className={`cursor-pointer select-none rounded-xl border border-line bg-surface p-4 shadow-[0_1px_3px_rgba(0,0,0,.04),0_1px_2px_rgba(0,0,0,.02)] transition-shadow hover:shadow-md ${
+                      draggingId === item.id ? "opacity-40" : ""
                     }`}
+                    // Reprovado ganha a faixa vermelha à esquerda do protótipo.
+                    style={
+                      item.status.key === "reprovado"
+                        ? { borderColor: "var(--danger)", borderLeftWidth: 3 }
+                        : undefined
+                    }
                   >
                     {renderCard(item)}
                   </div>
                 ))}
 
                 {columnItems.length === 0 && (
-                  <p className="py-6 text-center text-xs text-muted">Vazio</p>
+                  <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-line px-4 py-10 text-center">
+                    <div className="mb-3 rounded-xl bg-primary-soft p-4">
+                      <ClipboardTextIcon size={28} className="block text-primary" />
+                    </div>
+                    <p className="text-sm font-semibold">Nada aqui</p>
+                  </div>
                 )}
               </div>
             </section>

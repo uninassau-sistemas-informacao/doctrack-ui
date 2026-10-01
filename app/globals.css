@@ -1,43 +1,108 @@
 @import "tailwindcss";
 
-@theme {
-  --color-canvas: #f8f9fa;
-  --color-ink: #1a1a2e;
-  --color-muted: #717182;
-  --color-primary: #185fa5;
-  --color-primary-dark: #12497e;
-  --color-primary-soft: #eef4fb;
-  --color-line: rgba(0, 0, 0, 0.09);
-  --color-line-soft: rgba(0, 0, 0, 0.07);
+/* `.dark` no <html> liga o tema escuro (ThemeToggle + script em layout.tsx). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Paleta do protótipo (theme.css do Figma Make). Os nomes são os que a UI já usava — `muted`
+ * é cor de TEXTO secundário, não fundo. Fundos tingidos (`*-soft`) saem da própria cor por
+ * color-mix, então funcionam nos dois temas sem uma segunda tabela de pastéis.
+ */
+:root {
+  --canvas: #fafbfc;
+  --surface: #ffffff;
+  --surface-2: #f9fafb;
+  --ink: #1f2937;
+  --muted: #6b7280;
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --primary-soft: #f0f4ff;
+  --line: rgba(0, 0, 0, 0.08);
+  --line-soft: rgba(0, 0, 0, 0.05);
+  --danger: #993c1d;
+  --success: #0f6e56;
+  --warning: #ba7517;
+  --info: #185fa5;
+  --violet: #6b45c8;
+  --neutral: #717182;
+  --scrollbar: rgba(0, 0, 0, 0.14);
+  color-scheme: light;
+}
+
+.dark {
+  --canvas: #121212;
+  --surface: #1a1a1a;
+  --surface-2: #27272a;
+  --ink: #e5e7eb;
+  --muted: #9ca3af;
+  --primary: #60a5fa;
+  --primary-dark: #93c5fd;
+  --primary-soft: #1e3a5f;
+  --line: rgba(255, 255, 255, 0.1);
+  --line-soft: rgba(255, 255, 255, 0.07);
+  --danger: #f0997b;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --info: #60a5fa;
+  --violet: #a78bfa;
+  --neutral: #9ca3af;
+  --scrollbar: rgba(255, 255, 255, 0.16);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-soft: var(--primary-soft);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-violet: var(--violet);
+  --color-neutral: var(--neutral);
   --font-sans: var(--font-inter), system-ui, sans-serif;
 }
 
-body {
-  background: var(--color-canvas);
-  color: var(--color-ink);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-}
+/*
+ * Em @layer base de propósito: regra fora de layer vence QUALQUER utilitário do Tailwind 4,
+ * e o `a { color }` solto pintava de azul todo <Link> (menu, botões "Nova Prova" com texto
+ * azul sobre fundo azul).
+ */
+@layer base {
+  body {
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
 
-a {
-  color: var(--color-primary);
-}
+  a {
+    color: var(--primary);
+  }
 
-a:hover {
-  color: var(--color-primary-dark);
-  text-decoration: underline;
-}
+  a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+  }
 
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
 
-::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.14);
-  border-radius: 8px;
-}
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar);
+    border-radius: 8px;
+  }
 
-::-webkit-scrollbar-track {
-  background: transparent;
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }

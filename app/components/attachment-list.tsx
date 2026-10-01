@@ -94,7 +94,7 @@ export default function AttachmentList({
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={uploadMutation.isPending}
-            className="cursor-pointer rounded-xl border border-line bg-white px-4 py-2 text-sm font-semibold text-primary disabled:cursor-default disabled:opacity-60"
+            className="cursor-pointer rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-primary disabled:cursor-default disabled:opacity-60"
           >
             {uploadMutation.isPending ? "Enviando..." : "Escolher arquivo"}
           </button>
@@ -115,7 +115,7 @@ export default function AttachmentList({
       )}
 
       {(error || listQuery.error) && (
-        <p role="alert" className="text-sm text-[#993C1D]">
+        <p role="alert" className="text-sm text-danger">
           {error ??
             (listQuery.error instanceof Error
               ? listQuery.error.message
@@ -133,7 +133,7 @@ export default function AttachmentList({
         {attachments.map((attachment) => (
           <li
             key={attachment.id}
-            className="flex items-center gap-3 rounded-xl border border-line bg-white px-3 py-2"
+            className="flex items-center gap-3 rounded-xl border border-line bg-surface px-3 py-2"
           >
             <PaperclipIcon size={16} className="shrink-0 text-muted" />
             <div className="min-w-0 flex-1">

@@ -29,7 +29,7 @@ export default function IdleWarningModal({
         aria-live="assertive"
         aria-labelledby="idle-warning-title"
         aria-describedby="idle-warning-description"
-        className="w-full max-w-sm rounded-2xl border border-line bg-white p-5 shadow-lg"
+        className="w-full max-w-sm rounded-2xl border border-line bg-surface p-5 shadow-lg"
       >
         <h2 id="idle-warning-title" className="mb-1 text-base font-semibold">
           Sua sessão vai expirar

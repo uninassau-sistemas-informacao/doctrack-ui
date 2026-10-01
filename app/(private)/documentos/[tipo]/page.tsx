@@ -4,7 +4,7 @@ import { PlusIcon } from "@phosphor-icons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, use, useCallback, useState } from "react";
+import { Suspense, use, useCallback, useMemo, useState } from "react";
 
 import { DocumentsApi } from "../../../../lib/api/documents";
 import { WorkflowApi } from "../../../../lib/api/workflow";
@@ -13,10 +13,8 @@ import type { WorkflowStatus } from "../../../../lib/api/dto/workflowSchema";
 import DocumentDetailPanel from "../../../components/document-detail";
 import KanbanBoard from "../../../components/kanban/board";
 import DocumentKanbanCard from "../../../components/kanban/document-card";
-import PageHeader from "../../../components/page-header";
+import BoardHeader, { BOARD_ACTION, FILTER_SELECT } from "../../../components/board-header";
 import { PRIORITY_CONFIG } from "../../../lib/data";
-
-const FILTER = "rounded-xl border border-line bg-white px-3 py-2 text-sm outline-none focus:border-primary";
 
 /**
  * Quadro genérico (E7.3): serve qualquer tipo de documento sem satélite próprio. As colunas
@@ -42,6 +40,7 @@ function DocumentosBoard({ tipo }: { tipo: string }) {
 
   const [priority, setPriority] = useState<Priority | "">("");
   const [mine, setMine] = useState(false);
+  const [search, setSearch] = useState("");
 
   const typeQuery = useQuery({
     // Mesma chave que o detalhe em `admin/type-list`: é a mesma chamada, um cache só.
@@ -60,7 +59,12 @@ function DocumentosBoard({ tipo }: { tipo: string }) {
   }, [queryClient]);
 
   const statuses: WorkflowStatus[] = typeQuery.data?.statuses ?? [];
-  const documents = documentsQuery.data ?? [];
+  const documents = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    const all = documentsQuery.data ?? [];
+    return term ? all.filter((d) => d.title.toLowerCase().includes(term)) : all;
+  }, [documentsQuery.data, search]);
+  const activeFilters = [priority, mine].filter(Boolean).length;
   const error = typeQuery.error ?? documentsQuery.error;
 
   function select(id: number | null) {
@@ -96,41 +100,47 @@ function DocumentosBoard({ tipo }: { tipo: string }) {
   return (
     <div className="flex h-full min-h-0">
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <PageHeader
+        <BoardHeader
           title={typeQuery.data?.name ?? "Documentos"}
-          subtitle={`${documents.length} documento(s) no quadro`}
-        >
-          <Link
-            href={`/documentos/${tipo}/novo`}
-            className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white no-underline shadow-[0_1px_2px_rgba(0,0,0,.06)]"
-          >
-            <PlusIcon size={16} /> Novo
-          </Link>
-        </PageHeader>
+          subtitle={`${documents.length} documento(s) ${activeFilters > 0 || search ? "(filtrados)" : "no total"}`}
+          search={search}
+          onSearch={setSearch}
+          searchPlaceholder="Buscar documento..."
+          activeFilters={activeFilters}
+          onClearFilters={() => {
+            setPriority("");
+            setMine(false);
+          }}
+          action={
+            <Link href={`/documentos/${tipo}/novo`} className={BOARD_ACTION}>
+              <PlusIcon size={15} /> Novo
+            </Link>
+          }
+          filters={
+            <>
+              <select
+                className={FILTER_SELECT}
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as Priority | "")}
+              >
+                <option value="">Todas as prioridades</option>
+                {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
+                  <option key={key} value={key}>
+                    {cfg.label}
+                  </option>
+                ))}
+              </select>
+              <label className="flex cursor-pointer items-center gap-2 text-sm">
+                <input type="checkbox" checked={mine} onChange={(e) => setMine(e.target.checked)} />
+                Meus documentos
+              </label>
+            </>
+          }
+        />
 
-        <div className="flex flex-wrap items-center gap-3 border-b border-line bg-white px-6 py-3">
-          <select
-            className={FILTER}
-            value={priority}
-            onChange={(e) => setPriority(e.target.value as Priority | "")}
-          >
-            <option value="">Todas as prioridades</option>
-            {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
-              <option key={key} value={key}>
-                {cfg.label}
-              </option>
-            ))}
-          </select>
-
-          <label className="flex cursor-pointer items-center gap-2 text-sm">
-            <input type="checkbox" checked={mine} onChange={(e) => setMine(e.target.checked)} />
-            Meus documentos
-          </label>
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-auto p-6">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4">
           {error && (
-            <p role="alert" className="mb-3 text-sm text-[#993C1D]">
+            <p role="alert" className="mb-3 text-sm text-danger">
               {error.message}
             </p>
           )}

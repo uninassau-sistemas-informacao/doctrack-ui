@@ -48,7 +48,7 @@ function DataCard({ me }: { me: MeResponse }) {
   }
 
   return (
-    <div className="rounded-2xl border border-line-soft bg-white p-6">
+    <div className="rounded-2xl border border-line-soft bg-surface p-6">
       <h2 className="text-base font-semibold">Dados</h2>
 
       <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4">
@@ -78,11 +78,11 @@ function DataCard({ me }: { me: MeResponse }) {
         </div>
 
         {mutation.isError && (
-          <p role="alert" className="text-sm text-[#993C1D]">
+          <p role="alert" className="text-sm text-danger">
             {mutation.error instanceof Error ? mutation.error.message : "Não foi possível salvar."}
           </p>
         )}
-        {success && <p className="text-sm text-[#0F6E56]">Nome atualizado.</p>}
+        {success && <p className="text-sm text-success">Nome atualizado.</p>}
 
         <button type="submit" disabled={mutation.isPending || name.trim().length === 0} className={BUTTON}>
           {mutation.isPending ? "Salvando…" : "Salvar"}
@@ -132,7 +132,7 @@ function PasswordCard() {
   const failure = validationError ?? (mutation.error instanceof Error ? mutation.error.message : null);
 
   return (
-    <div className="rounded-2xl border border-line-soft bg-white p-6">
+    <div className="rounded-2xl border border-line-soft bg-surface p-6">
       <h2 className="text-base font-semibold">Senha</h2>
 
       <form onSubmit={handleSubmit} noValidate className="mt-4 flex flex-col gap-4">
@@ -188,12 +188,12 @@ function PasswordCard() {
         </div>
 
         {failure && (
-          <p role="alert" className="text-sm text-[#993C1D]">
+          <p role="alert" className="text-sm text-danger">
             {failure}
           </p>
         )}
         {success && (
-          <p className="text-sm text-[#0F6E56]">Senha alterada. As outras sessões foram encerradas.</p>
+          <p className="text-sm text-success">Senha alterada. As outras sessões foram encerradas.</p>
         )}
 
         <button type="submit" disabled={mutation.isPending} className={BUTTON}>

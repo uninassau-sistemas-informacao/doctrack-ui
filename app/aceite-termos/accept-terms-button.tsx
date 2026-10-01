@@ -39,7 +39,7 @@ export default function AcceptTermsButton() {
   return (
     <div className="mt-5 flex flex-col gap-3">
       {error && (
-        <p role="alert" className="text-sm text-[#993C1D]">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}

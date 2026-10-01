@@ -46,7 +46,7 @@ export default function AdminTabs({
     <>
       <PageHeader title="Administração" subtitle="Gerenciamento de usuários, tipos, fluxos e auditoria" />
 
-      <div className="flex gap-1 border-b border-line-soft bg-white px-6">
+      <div className="flex gap-1 border-b border-line-soft bg-surface px-6">
         {tabs.map((item) => (
           <button
             key={item.key}

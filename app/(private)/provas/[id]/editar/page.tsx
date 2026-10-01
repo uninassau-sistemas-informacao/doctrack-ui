@@ -35,13 +35,13 @@ export default function EditarProvaPage({ params }: { params: Promise<{ id: stri
       <div className="p-6">
         <div className="mx-auto max-w-3xl">
           {error && (
-            <p role="alert" className="text-sm text-[#993C1D]">
+            <p role="alert" className="text-sm text-danger">
               {error instanceof Error ? error.message : "Prova não encontrada."}
             </p>
           )}
           {!error && !exam && <p className="text-sm text-muted">Carregando…</p>}
           {exam && !editable && (
-            <p className="rounded-xl border border-line bg-white p-5 text-sm text-muted">
+            <p className="rounded-xl border border-line bg-surface p-5 text-sm text-muted">
               Esta prova está em <strong>{exam.document.status.label}</strong> e só pode ser
               editada em rascunho ou após reprovação.
             </p>

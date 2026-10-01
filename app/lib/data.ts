@@ -35,15 +35,23 @@ export interface BadgeStyle {
  * cadastrar no E4.
  */
 export function badgeFromStatus(status: WorkflowStatus): BadgeStyle {
-  return { label: status.label, color: status.color, bg: `${status.color}1F` };
+  return { label: status.label, color: status.color, bg: soft(status.color) };
+}
+
+/**
+ * Fundo tingido de uma cor (hex ou `var(--x)`). Transparência em vez de pastel fixo: o mesmo
+ * valor serve no tema claro e no escuro, porque mistura com o que estiver por baixo.
+ */
+export function soft(color: string, percent = 14): string {
+  return `color-mix(in srgb, ${color} ${percent}%, transparent)`;
 }
 
 // --- configs visuais (sem equivalente no banco) ---
 
 export const PRIORITY_CONFIG: Record<Priority, BadgeStyle> = {
-  alta: { label: "Alta", color: "#EF4444", bg: "#FEE2E2" },
-  media: { label: "Média", color: "#F59E0B", bg: "#FEF3C7" },
-  baixa: { label: "Baixa", color: "#10B981", bg: "#ECFDF5" },
+  alta: { label: "Alta", color: "#EF4444", bg: soft("#EF4444") },
+  media: { label: "Média", color: "#F59E0B", bg: soft("#F59E0B") },
+  baixa: { label: "Baixa", color: "#10B981", bg: soft("#10B981") },
 };
 
 export const ROLE_LABELS: Record<Role, string> = {
@@ -55,10 +63,10 @@ export const ROLE_LABELS: Record<Role, string> = {
 };
 
 export const NOTIF_DOT: Record<NotificationType, string> = {
-  info: "#185FA5",
-  success: "#0F6E56",
-  warning: "#BA7517",
-  error: "#993C1D",
+  info: "var(--info)",
+  success: "var(--success)",
+  warning: "var(--warning)",
+  error: "var(--danger)",
 };
 
 export function formatDate(iso: string): string {

@@ -10,7 +10,7 @@ import { GraduationCapIcon } from "@phosphor-icons/react";
 export default function BrandHeader() {
   return (
     <div className="mb-8 flex flex-col items-center gap-3 text-center">
-      <div className="flex size-12 items-center justify-center rounded-2xl bg-[#3B82F6]">
+      <div className="flex size-12 items-center justify-center rounded-2xl bg-primary">
         <GraduationCapIcon size={26} color="#fff" />
       </div>
       <div>

@@ -1,32 +1,41 @@
 "use client";
 
+import { ClockIcon } from "@phosphor-icons/react";
+
 import type { Document } from "../../../lib/api/dto/documentSchema";
-import { PRIORITY_CONFIG, formatDate } from "../../lib/data";
+import { formatDate } from "../../lib/data";
+import { Avatar, PriorityPill, StatusPill } from "../badges";
 
 /**
- * Card do quadro genérico: só campos do núcleo. Tipos com satélite (prova, ata) têm cards
- * próprios porque mostram disciplina, turma e afins — aqui não há satélite para mostrar.
+ * Card do quadro genérico: só campos do núcleo, no mesmo desenho do card de prova. Tipos com
+ * satélite (prova) têm card próprio porque mostram disciplina e turma — aqui não há satélite.
  */
 export default function DocumentKanbanCard({ document }: { document: Document }) {
-  const priority = PRIORITY_CONFIG[document.priority];
+  const requester = document.requester?.name;
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-sm font-semibold">{document.title}</p>
-      {document.description && (
-        <p className="line-clamp-2 text-xs text-muted">{document.description}</p>
-      )}
-      <div className="flex items-center gap-2">
-        <span
-          className="rounded-full px-2 py-[3px] text-[11px] font-semibold"
-          style={{ background: priority.bg, color: priority.color }}
-        >
-          {priority.label}
-        </span>
-        {document.deadline && (
-          <span className="text-[11px] text-muted">Prazo {formatDate(document.deadline)}</span>
-        )}
+    <div>
+      <div className="mb-2 flex items-start gap-2">
+        <p className="line-clamp-2 min-w-0 flex-1 text-sm font-semibold leading-snug">{document.title}</p>
+        <PriorityPill priority={document.priority} showLabel={false} />
       </div>
-      <p className="text-[11px] text-muted">{document.requester?.name ?? "—"}</p>
+      {document.description && (
+        <p className="mb-2.5 line-clamp-2 text-xs text-muted">{document.description}</p>
+      )}
+      <div className="mb-2.5">
+        <StatusPill status={document.status} />
+      </div>
+      {document.deadline && (
+        <p className="mb-3 flex items-center gap-1.5 text-xs text-muted">
+          <ClockIcon size={11} className="shrink-0" />
+          Prazo: {formatDate(document.deadline)}
+        </p>
+      )}
+      {requester && (
+        <div className="flex items-center gap-1.5">
+          <Avatar name={requester} size="xs" />
+          <span className="max-w-[140px] truncate text-xs text-muted">{requester.split(" ")[0]}</span>
+        </div>
+      )}
     </div>
   );
 }

@@ -92,12 +92,12 @@ export default function NovoDocumentoPage({ params }: { params: Promise<{ tipo: 
       <div className="p-6">
         <div className="mx-auto max-w-3xl">
           {typeQuery.error && (
-            <p role="alert" className="mb-4 text-sm text-[#993C1D]">
+            <p role="alert" className="mb-4 text-sm text-danger">
               {typeQuery.error.message}
             </p>
           )}
           <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
-            <section className="rounded-2xl border border-line bg-white p-5">
+            <section className="rounded-2xl border border-line bg-surface p-5">
               <h2 className="mb-4 text-base font-semibold">Dados do documento</h2>
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Título" error={fieldErrors.title} className="col-span-2">
@@ -137,7 +137,7 @@ export default function NovoDocumentoPage({ params }: { params: Promise<{ tipo: 
 
             {/* Mesmo aviso de `exam-form.tsx`: o anexo exige o documento já criado (FK), então
                 a criação só orienta — o envio acontece na aba Anexos do detalhe. */}
-            <section className="rounded-2xl border border-line bg-white p-5">
+            <section className="rounded-2xl border border-line bg-surface p-5">
               <h2 className="mb-3 text-base font-semibold">Anexos</h2>
               <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line py-8 text-center">
                 <PaperclipIcon size={22} className="text-muted" />
@@ -149,7 +149,7 @@ export default function NovoDocumentoPage({ params }: { params: Promise<{ tipo: 
             </section>
 
             {formError && (
-              <p role="alert" className="text-sm text-[#993C1D]">
+              <p role="alert" className="text-sm text-danger">
                 {formError}
               </p>
             )}
@@ -192,7 +192,7 @@ function Field({
     <div className={`flex flex-col gap-1.5 ${className}`}>
       <label className="text-sm font-medium">{label}</label>
       {children}
-      {error && <p className="text-xs text-[#993C1D]">{error}</p>}
+      {error && <p className="text-xs text-danger">{error}</p>}
     </div>
   );
 }

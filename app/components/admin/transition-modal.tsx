@@ -98,7 +98,7 @@ export default function TransitionModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-6">
-      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-line bg-white p-5 shadow-lg">
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-line bg-surface p-5 shadow-lg">
         <h2 className="mb-4 text-base font-semibold">{transition ? "Editar transição" : "Nova transição"}</h2>
 
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
@@ -133,7 +133,7 @@ export default function TransitionModal({
               placeholder="enviar_para_revisao"
               className={FIELD}
             />
-            {fieldErrors.key && <p role="alert" className="mt-1 text-xs text-[#993C1D]">{fieldErrors.key}</p>}
+            {fieldErrors.key && <p role="alert" className="mt-1 text-xs text-danger">{fieldErrors.key}</p>}
           </div>
 
           <div>
@@ -144,7 +144,7 @@ export default function TransitionModal({
               placeholder="Enviar para revisão"
               className={FIELD}
             />
-            {fieldErrors.label && <p role="alert" className="mt-1 text-xs text-[#993C1D]">{fieldErrors.label}</p>}
+            {fieldErrors.label && <p role="alert" className="mt-1 text-xs text-danger">{fieldErrors.label}</p>}
           </div>
 
           <fieldset>
@@ -162,7 +162,7 @@ export default function TransitionModal({
               ))}
             </div>
             {fieldErrors.allowedRoles && (
-              <p role="alert" className="mt-1 text-xs text-[#993C1D]">{fieldErrors.allowedRoles}</p>
+              <p role="alert" className="mt-1 text-xs text-danger">{fieldErrors.allowedRoles}</p>
             )}
           </fieldset>
 
@@ -191,13 +191,13 @@ export default function TransitionModal({
             Exige comentário
           </label>
 
-          {formError && <p role="alert" className="text-sm text-[#993C1D]">{formError}</p>}
+          {formError && <p role="alert" className="text-sm text-danger">{formError}</p>}
 
           <div className="mt-2 flex justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="cursor-pointer rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-primary"
+              className="cursor-pointer rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-semibold text-primary"
             >
               Cancelar
             </button>

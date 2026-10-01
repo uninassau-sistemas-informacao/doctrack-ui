@@ -8,6 +8,7 @@ import {
   type Presence,
   type RecordEntriesInput,
 } from "../../lib/api/dto/recordSchema";
+import { soft } from "../lib/data";
 
 const FIELD = "rounded-xl border border-line bg-canvas px-3 py-2 text-sm outline-none focus:border-primary";
 
@@ -19,9 +20,9 @@ const PRESENCE_LABELS: Record<Presence, string> = {
 
 /** Badge de presença — mesmas cores do restante da UI, `style` inline como em `badgeFromStatus`. */
 const PRESENCE_BADGE: Record<Presence, { color: string; bg: string }> = {
-  presente: { color: "#0F6E56", bg: "#E6F4F0" },
-  ausente: { color: "#993C1D", bg: "#FCEAE4" },
-  ausente_justificado: { color: "#BA7517", bg: "#FEF3DC" },
+  presente: { color: "var(--success)", bg: soft("var(--success)") },
+  ausente: { color: "var(--danger)", bg: soft("var(--danger)") },
+  ausente_justificado: { color: "var(--warning)", bg: soft("var(--warning)") },
 };
 
 const SITUATION_LABELS: Record<string, string> = {
@@ -236,7 +237,7 @@ export default function RecordEntriesTable({
                           onChange={(e) => patch(entry.id, { grade: e.target.value })}
                         />
                         {fieldErrors[entry.id] && (
-                          <p className="mt-1 text-xs text-[#993C1D]">{fieldErrors[entry.id]}</p>
+                          <p className="mt-1 text-xs text-danger">{fieldErrors[entry.id]}</p>
                         )}
                       </>
                     ) : (
@@ -287,7 +288,7 @@ export default function RecordEntriesTable({
       </div>
 
       {error && (
-        <p role="alert" className="text-sm text-[#993C1D]">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}
@@ -310,7 +311,7 @@ export default function RecordEntriesTable({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-line bg-white p-4 text-center">
+    <div className="rounded-xl border border-line bg-surface p-4 text-center">
       <p className="text-xl font-bold">{value}</p>
       <p className="mt-0.5 text-xs text-muted">{label}</p>
     </div>

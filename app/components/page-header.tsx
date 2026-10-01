@@ -14,7 +14,7 @@ export default function PageHeader({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="sticky top-0 z-10 border-b border-line bg-white px-6 py-5">
+    <div className="sticky top-0 z-10 border-b border-line bg-surface px-6 py-5">
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
           {backHref && (

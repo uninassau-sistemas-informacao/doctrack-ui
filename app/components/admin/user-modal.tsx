@@ -90,14 +90,14 @@ export default function UserModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-6">
-      <div className="w-full max-w-md rounded-2xl border border-line bg-white p-5 shadow-lg">
+      <div className="w-full max-w-md rounded-2xl border border-line bg-surface p-5 shadow-lg">
         <h2 className="mb-4 text-base font-semibold">{user ? "Editar usuário" : "Novo usuário"}</h2>
 
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
           <div>
             <label className="mb-1 block text-xs font-semibold text-muted">Nome</label>
             <input value={name} onChange={(e) => setName(e.target.value)} className={FIELD} />
-            {fieldErrors.name && <p role="alert" className="mt-1 text-xs text-[#993C1D]">{fieldErrors.name}</p>}
+            {fieldErrors.name && <p role="alert" className="mt-1 text-xs text-danger">{fieldErrors.name}</p>}
           </div>
 
           {!user && (
@@ -105,7 +105,7 @@ export default function UserModal({
               <div>
                 <label className="mb-1 block text-xs font-semibold text-muted">E-mail</label>
                 <input value={email} onChange={(e) => setEmail(e.target.value)} className={FIELD} />
-                {fieldErrors.email && <p role="alert" className="mt-1 text-xs text-[#993C1D]">{fieldErrors.email}</p>}
+                {fieldErrors.email && <p role="alert" className="mt-1 text-xs text-danger">{fieldErrors.email}</p>}
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-muted">Senha</label>
@@ -116,7 +116,7 @@ export default function UserModal({
                   className={FIELD}
                 />
                 {fieldErrors.password && (
-                  <p role="alert" className="mt-1 text-xs text-[#993C1D]">{fieldErrors.password}</p>
+                  <p role="alert" className="mt-1 text-xs text-danger">{fieldErrors.password}</p>
                 )}
               </div>
             </>
@@ -155,13 +155,13 @@ export default function UserModal({
             </label>
           )}
 
-          {formError && <p role="alert" className="text-sm text-[#993C1D]">{formError}</p>}
+          {formError && <p role="alert" className="text-sm text-danger">{formError}</p>}
 
           <div className="mt-2 flex justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="cursor-pointer rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-primary"
+              className="cursor-pointer rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-semibold text-primary"
             >
               Cancelar
             </button>

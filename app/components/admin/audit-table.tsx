@@ -7,8 +7,9 @@ import { useEffect, useState } from "react";
 import { AuditApi } from "../../../lib/api/audit";
 import { ApiError } from "../../../lib/api/client";
 import type { AuditLogRow } from "../../../lib/api/dto/auditSchema";
+import { soft } from "../../lib/data";
 
-const FILTER = "rounded-xl border border-line bg-white px-3 py-2 text-sm outline-none focus:border-primary";
+const FILTER = "rounded-xl border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-primary";
 
 const HEADERS = ["Quando", "Quem", "Ação", "Módulo", "Registro", "IP", "Mudanças"];
 
@@ -32,12 +33,12 @@ const MODULES = [
 
 /** `login_failed` é o registro que mais importa aqui, então ganha destaque próprio. */
 const ACTION_COLORS: Record<string, string> = {
-  ADD: "#0F6E56",
-  MOD: "#185FA5",
-  DEL: "#993C1D",
-  login: "#0F6E56",
-  logout: "#717182",
-  login_failed: "#993C1D",
+  ADD: "var(--success)",
+  MOD: "var(--info)",
+  DEL: "var(--danger)",
+  login: "var(--success)",
+  logout: "var(--neutral)",
+  login_failed: "var(--danger)",
 };
 
 function moduleLabel(key: string): string {
@@ -109,7 +110,7 @@ export default function AuditTable() {
             value={search}
             onChange={(event) => changeFilter(setSearch, event.target.value)}
             placeholder="Buscar por usuário ou e-mail..."
-            className="w-full rounded-xl border border-line bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-primary"
+            className="w-full rounded-xl border border-line bg-surface py-2.5 pl-9 pr-3 text-sm outline-none focus:border-primary"
           />
         </div>
         <select className={FILTER} value={module} onChange={(event) => changeFilter(setModule, event.target.value)}>
@@ -131,12 +132,12 @@ export default function AuditTable() {
       </div>
 
       {error && (
-        <p role="alert" className="text-sm text-[#993C1D]">
+        <p role="alert" className="text-sm text-danger">
           {error instanceof ApiError ? error.message : "Nao foi possivel carregar a auditoria"}
         </p>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-line bg-white">
+      <div className="overflow-hidden rounded-2xl border border-line bg-surface">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-sm">
             <thead>
@@ -171,7 +172,7 @@ export default function AuditTable() {
             <button
               onClick={() => setPage((current) => Math.max(0, current - 1))}
               disabled={page === 0}
-              className="flex size-8 cursor-pointer items-center justify-center rounded-lg border border-line bg-white text-muted disabled:opacity-40"
+              className="flex size-8 cursor-pointer items-center justify-center rounded-lg border border-line bg-surface text-muted disabled:opacity-40"
               aria-label="Página anterior"
             >
               <CaretLeftIcon size={14} />
@@ -179,7 +180,7 @@ export default function AuditTable() {
             <button
               onClick={() => setPage((current) => Math.min(lastPage, current + 1))}
               disabled={page >= lastPage}
-              className="flex size-8 cursor-pointer items-center justify-center rounded-lg border border-line bg-white text-muted disabled:opacity-40"
+              className="flex size-8 cursor-pointer items-center justify-center rounded-lg border border-line bg-surface text-muted disabled:opacity-40"
               aria-label="Próxima página"
             >
               <CaretRightIcon size={14} />
@@ -192,7 +193,7 @@ export default function AuditTable() {
 }
 
 function AuditRow({ row }: { row: AuditLogRow }) {
-  const color = ACTION_COLORS[row.action] ?? "#717182";
+  const color = ACTION_COLORS[row.action] ?? "var(--neutral)";
   return (
     <tr className="border-t border-line align-top">
       <td className="whitespace-nowrap px-4 py-3 text-muted">{formatWhen(row.occurredAt)}</td>
@@ -200,7 +201,7 @@ function AuditRow({ row }: { row: AuditLogRow }) {
       <td className="px-4 py-3">
         <span
           className="whitespace-nowrap rounded-full px-2 py-[3px] text-[11px] font-semibold"
-          style={{ background: `${color}1F`, color }}
+          style={{ background: soft(color), color }}
         >
           {row.action}
         </span>

@@ -19,6 +19,8 @@ import { useState } from "react";
 import { AuthApi } from "../../lib/api/auth";
 import type { DocumentType } from "../../lib/api/dto/workflowSchema";
 import { ROLE_LABELS, User } from "../lib/data";
+import { Avatar } from "./badges";
+import ThemeToggle from "./theme-toggle";
 
 interface NavItem {
   key: string;
@@ -37,10 +39,14 @@ function isActive(pathname: string, href: string): boolean {
  * Tipos com tela própria (E4.5): entram no menu com o rótulo e a rota deles, não com o
  * nome cadastrado no banco nem com o Kanban genérico.
  */
-const FIXED_TYPES: Record<string, { icon: Icon; label: string; href: string }> = {
-  prova: { icon: ColumnsIcon, label: "Gestão de Provas", href: "/provas" },
-  ata: { icon: FileTextIcon, label: "Gestão de Atas", href: "/atas" },
+const FIXED_TYPES: Record<string, { icon: Icon; label: string; href: string; order: number }> = {
+  prova: { icon: ColumnsIcon, label: "Gestão de Provas", href: "/provas", order: 0 },
+  ata: { icon: FileTextIcon, label: "Gestão de Atas", href: "/atas", order: 1 },
 };
+
+const NAV_LINK = "relative flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left no-underline transition-colors hover:no-underline";
+const NAV_ACTIVE = "bg-primary-soft font-medium text-primary hover:text-primary";
+const NAV_IDLE = "text-muted hover:bg-surface-2 hover:text-ink";
 
 interface SidebarProps {
   user: User;
@@ -82,7 +88,11 @@ export default function Sidebar({
   // sem deploy. A API já devolve só os ativos, ordenados por nome.
   // Os tipos sem tela própria abrem o Kanban genérico do E7.3 (`/documentos/[tipo]`), rota que
   // nasce naquele épico: até lá o item aparece no menu e leva a um 404.
-  const typeItems: NavItem[] = documentTypes.map((type) => {
+  // Provas e Atas primeiro, na ordem do protótipo; os demais tipos seguem a ordem da API (nome).
+  const sortedTypes = [...documentTypes].sort(
+    (a, b) => (FIXED_TYPES[a.key]?.order ?? 99) - (FIXED_TYPES[b.key]?.order ?? 99)
+  );
+  const typeItems: NavItem[] = sortedTypes.map((type) => {
     const fixed = FIXED_TYPES[type.key];
     return {
       key: type.key,
@@ -106,11 +116,11 @@ export default function Sidebar({
 
   return (
     <aside
-      className="relative flex h-full shrink-0 flex-col border-r border-line-soft bg-white transition-[width] duration-300"
+      className="relative flex h-full shrink-0 flex-col border-r border-line-soft bg-canvas transition-[width] duration-300"
       style={{ width: collapsed ? 56 : 200 }}
     >
       <div className="flex items-center gap-3 overflow-hidden border-b border-line-soft px-4 py-5">
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[#3B82F6]">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary">
           <GraduationCapIcon size={18} color="#fff" />
         </div>
         {expanded && (
@@ -123,11 +133,15 @@ export default function Sidebar({
 
       <button
         onClick={onToggle}
-        className="absolute -right-3 top-[52px] z-10 flex size-6 cursor-pointer items-center justify-center rounded-full border border-line bg-white p-0 text-muted shadow-[0_1px_2px_rgba(0,0,0,.06)]"
+        className="absolute -right-3 top-[52px] z-10 flex size-6 cursor-pointer items-center justify-center rounded-full border border-line bg-surface p-0 text-muted shadow-[0_1px_2px_rgba(0,0,0,.06)]"
         aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
       >
         <CaretIcon size={13} />
       </button>
+
+      <div className={`px-2 pb-2 pt-3 ${collapsed ? "flex justify-center" : ""}`}>
+        <ThemeToggle compact={collapsed} />
+      </div>
 
       <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-4">
         {expanded && (
@@ -139,11 +153,7 @@ export default function Sidebar({
               key={item.key}
               href={item.href}
               title={item.label}
-              className={`relative flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left no-underline ${
-                isActive(pathname, item.href)
-                  ? "bg-primary-soft font-medium text-primary"
-                  : "text-muted"
-              }`}
+              className={`${NAV_LINK} ${isActive(pathname, item.href) ? NAV_ACTIVE : NAV_IDLE}`}
             >
               <item.icon size={18} className="shrink-0" />
               {expanded && (
@@ -151,7 +161,7 @@ export default function Sidebar({
               )}
               {item.badge != null && item.badge > 0 && (
                 <span
-                  className={`flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-full bg-[#993C1D] px-1 text-[10px] font-bold text-white ${
+                  className={`flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white ${
                     collapsed ? "absolute right-1 top-1" : "ml-auto"
                   }`}
                 >
@@ -170,11 +180,7 @@ export default function Sidebar({
             <Link
               href="/admin"
               title="Administração"
-              className={`mt-2 flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left no-underline ${
-                isActive(pathname, "/admin")
-                  ? "bg-primary-soft font-medium text-primary"
-                  : "text-muted"
-              }`}
+              className={`mt-2 ${NAV_LINK} ${isActive(pathname, "/admin") ? NAV_ACTIVE : NAV_IDLE}`}
             >
               <GearIcon size={18} className="shrink-0" />
               {expanded && <span className="whitespace-nowrap text-sm">Administração</span>}
@@ -187,16 +193,11 @@ export default function Sidebar({
         <Link
           href="/perfil"
           title="Meu perfil"
-          className={`-m-1 flex items-center gap-2.5 overflow-hidden rounded-xl p-1 no-underline ${
+          className={`-m-1 flex items-center gap-2.5 overflow-hidden rounded-xl p-1 text-ink no-underline hover:bg-surface-2 hover:text-ink hover:no-underline ${
             isActive(pathname, "/perfil") ? "bg-primary-soft" : ""
           }`}
         >
-          <span
-            className="flex size-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
-            style={{ background: user.avatarColor }}
-          >
-            {user.initials}
-          </span>
+          <Avatar name={user.name} color={user.avatarColor} />
           {expanded && (
             <div className="min-w-0 flex-1">
               <p
@@ -214,7 +215,7 @@ export default function Sidebar({
           <button
             onClick={handleSignOut}
             disabled={isSigningOut}
-            className="mt-2 flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-muted disabled:cursor-default disabled:opacity-60"
+            className="mt-2 flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-muted hover:bg-surface-2 hover:text-ink disabled:cursor-default disabled:opacity-60"
           >
             <SignOutIcon size={13} /> {isSigningOut ? "Saindo…" : "Sair"}
           </button>

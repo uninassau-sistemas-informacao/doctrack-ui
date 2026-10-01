@@ -8,15 +8,15 @@ import { AdminApi } from "../../../lib/api/admin";
 import { ApiError } from "../../../lib/api/client";
 import type { AdminUser } from "../../../lib/api/dto/adminSchema";
 import type { Role } from "../../../lib/api/dto/authSchema";
-import { ROLE_LABELS } from "../../lib/data";
+import { ROLE_LABELS, soft } from "../../lib/data";
 import UserModal from "./user-modal";
 
 const ROLE_COLORS: Record<string, string> = {
-  professor: "#185FA5",
-  supervisor: "#BA7517",
-  secretaria: "#993C1D",
-  coordenador: "#0F6E56",
-  admin: "#6D28D9",
+  professor: "var(--info)",
+  supervisor: "var(--warning)",
+  secretaria: "var(--danger)",
+  coordenador: "var(--success)",
+  admin: "var(--violet)",
 };
 
 const HEADERS = ["Usuário", "E-mail", "Perfil", "Status", "Ações"];
@@ -84,7 +84,7 @@ export default function UserTable({
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Buscar usuário..."
-            className="w-full rounded-xl border border-line bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-primary"
+            className="w-full rounded-xl border border-line bg-surface py-2.5 pl-9 pr-3 text-sm outline-none focus:border-primary"
           />
         </div>
         <button
@@ -96,12 +96,12 @@ export default function UserTable({
       </div>
 
       {failure && (
-        <p role="alert" className="text-sm text-[#993C1D]">
+        <p role="alert" className="text-sm text-danger">
           {failure instanceof ApiError ? failure.message : "Nao foi possivel carregar os usuarios"}
         </p>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-line bg-white">
+      <div className="overflow-hidden rounded-2xl border border-line bg-surface">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="bg-canvas">
@@ -121,7 +121,7 @@ export default function UserTable({
                   <span
                     className="rounded-full px-2 py-[3px] text-[11px] font-semibold"
                     style={{
-                      background: `${ROLE_COLORS[user.role]}1F`,
+                      background: soft(ROLE_COLORS[user.role]),
                       color: ROLE_COLORS[user.role],
                     }}
                   >
@@ -132,8 +132,8 @@ export default function UserTable({
                   <span
                     className="inline-flex items-center gap-1 rounded-full px-2 py-[3px] text-[11px] font-semibold"
                     style={{
-                      background: user.active ? "#E6F4F0" : "#FCEAE4",
-                      color: user.active ? "#0F6E56" : "#993C1D",
+                      background: soft(user.active ? "var(--success)" : "var(--danger)"),
+                      color: user.active ? "var(--success)" : "var(--danger)",
                     }}
                   >
                     {user.active ? <CheckCircleIcon size={11} /> : <XCircleIcon size={11} />}

@@ -116,7 +116,7 @@ export default function ExamForm({ exam }: { exam?: Exam }) {
 
   return (
     <form onSubmit={(e) => handleSubmit(e, "draft")} noValidate className="flex flex-col gap-6">
-      <section className="rounded-2xl border border-line bg-white p-5">
+      <section className="rounded-2xl border border-line bg-surface p-5">
         <h2 className="mb-4 text-base font-semibold">Dados da prova</h2>
         <div className="grid grid-cols-2 gap-4">
           <Field label="Título" error={fieldErrors.title} className="col-span-2">
@@ -178,7 +178,7 @@ export default function ExamForm({ exam }: { exam?: Exam }) {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-line bg-white p-5">
+      <section className="rounded-2xl border border-line bg-surface p-5">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-base font-semibold">
             Questões <span className="font-normal text-muted">({questions.length})</span>
@@ -230,14 +230,14 @@ export default function ExamForm({ exam }: { exam?: Exam }) {
           </div>
         )}
         {fieldErrors.questions && (
-          <p className="mt-2 text-xs text-[#993C1D]">{fieldErrors.questions}</p>
+          <p className="mt-2 text-xs text-danger">{fieldErrors.questions}</p>
         )}
       </section>
 
       {/* Anexo pertence ao documento e exige que ele exista (FK). Em vez de segurar arquivo em
           memória e subir depois de salvar — estado intermediário com falha própria —, a criação
           orienta e o envio acontece na aba Anexos do detalhe, caminho único para todos os tipos. */}
-      <section className="rounded-2xl border border-line bg-white p-5">
+      <section className="rounded-2xl border border-line bg-surface p-5">
         <h2 className="mb-3 text-base font-semibold">Anexos</h2>
         <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line py-8 text-center">
           <PaperclipIcon size={22} className="text-muted" />
@@ -249,7 +249,7 @@ export default function ExamForm({ exam }: { exam?: Exam }) {
       </section>
 
       {formError && (
-        <p role="alert" className="text-sm text-[#993C1D]">
+        <p role="alert" className="text-sm text-danger">
           {formError}
         </p>
       )}
@@ -265,7 +265,7 @@ export default function ExamForm({ exam }: { exam?: Exam }) {
         <button
           type="submit"
           disabled={submitting !== null}
-          className="cursor-pointer rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-primary disabled:cursor-default disabled:opacity-60"
+          className="cursor-pointer rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-semibold text-primary disabled:cursor-default disabled:opacity-60"
         >
           {submitting === "draft" ? "Salvando…" : "Salvar rascunho"}
         </button>
@@ -299,7 +299,7 @@ function Field({
     <div className={`flex flex-col gap-1.5 ${className}`}>
       <label className="text-sm font-medium">{label}</label>
       {children}
-      {error && <p className="text-xs text-[#993C1D]">{error}</p>}
+      {error && <p className="text-xs text-danger">{error}</p>}
     </div>
   );
 }

@@ -54,7 +54,7 @@ export default function RedefinirSenhaPage({ searchParams }: RedefinirSenhaPageP
     <main className="flex min-h-screen items-center justify-center bg-canvas px-6 py-16 text-ink">
       <section className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-[#3B82F6]">
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary">
             <GraduationCapIcon size={26} color="#fff" />
           </div>
           <div>
@@ -63,12 +63,12 @@ export default function RedefinirSenhaPage({ searchParams }: RedefinirSenhaPageP
           </div>
         </div>
 
-        <div className="rounded-2xl border border-line-soft bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,.06)]">
+        <div className="rounded-2xl border border-line-soft bg-surface p-6 shadow-[0_1px_2px_rgba(0,0,0,.06)]">
           <h2 className="text-base font-semibold">Redefinir senha</h2>
 
           {!token ? (
             <>
-              <p role="alert" className="mt-3 text-sm text-[#993C1D]">
+              <p role="alert" className="mt-3 text-sm text-danger">
                 Link inválido.
               </p>
               <p className="mt-5 text-center text-sm">
@@ -113,14 +113,14 @@ export default function RedefinirSenhaPage({ searchParams }: RedefinirSenhaPageP
                 </div>
 
                 {localError && (
-                  <p role="alert" className="text-sm text-[#993C1D]">
+                  <p role="alert" className="text-sm text-danger">
                     {localError}
                   </p>
                 )}
 
                 {apiError && (
                   <div role="alert">
-                    <p className="text-sm text-[#993C1D]">{apiError}</p>
+                    <p className="text-sm text-danger">{apiError}</p>
                     <p className="mt-1 text-sm">
                       <Link href="/recuperar-senha">Pedir um novo link</Link>
                     </p>

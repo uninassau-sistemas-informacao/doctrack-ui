@@ -74,13 +74,13 @@ export default function NotificacoesPage() {
         <button
           onClick={() => markAll.mutate()}
           disabled={unread === 0 || markAll.isPending}
-          className="flex items-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-muted disabled:opacity-50"
+          className="flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-semibold text-muted disabled:opacity-50"
         >
           <CheckIcon size={16} /> Marcar todas como lidas
         </button>
       </PageHeader>
 
-      <div className="flex items-center gap-3 border-b border-line bg-white px-6 py-3">
+      <div className="flex items-center gap-3 border-b border-line bg-surface px-6 py-3">
         <label className="flex cursor-pointer items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -93,7 +93,7 @@ export default function NotificacoesPage() {
 
       <div className="min-h-0 flex-1 overflow-auto p-6">
         {failure && (
-          <p role="alert" className="mb-3 text-sm text-[#993C1D]">
+          <p role="alert" className="mb-3 text-sm text-danger">
             {failure instanceof Error ? failure.message : "Não foi possível carregar as notificações."}
           </p>
         )}
@@ -113,7 +113,7 @@ export default function NotificacoesPage() {
                 className={`flex w-full cursor-pointer items-start gap-3 rounded-xl border p-4 text-left ${
                   item.readAt === null
                     ? "border-primary/30 bg-primary-soft"
-                    : "border-line bg-white"
+                    : "border-line bg-surface"
                 }`}
               >
                 <BellIcon

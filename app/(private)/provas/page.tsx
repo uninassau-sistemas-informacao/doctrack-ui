@@ -15,10 +15,8 @@ import type { WorkflowStatus } from "../../../lib/api/dto/workflowSchema";
 import DocumentDetailPanel from "../../components/document-detail";
 import KanbanBoard from "../../components/kanban/board";
 import ExamKanbanCard from "../../components/kanban/exam-card";
-import PageHeader from "../../components/page-header";
+import BoardHeader, { BOARD_ACTION, FILTER_SELECT } from "../../components/board-header";
 import { PRIORITY_CONFIG } from "../../lib/data";
-
-const FILTER = "rounded-xl border border-line bg-white px-3 py-2 text-sm outline-none focus:border-primary";
 
 /**
  * Quadro de provas (E2.4 + E2.6). As colunas vêm de `GET /document-types/prova`, não de
@@ -46,6 +44,7 @@ function ProvasBoard() {
   const [discipline, setDiscipline] = useState("");
   const [priority, setPriority] = useState<Priority | "">("");
   const [mine, setMine] = useState(false);
+  const [search, setSearch] = useState("");
 
   const typeQuery = useQuery({
     // Mesma chave que o detalhe em `admin/type-list`: é a mesma chamada, um cache só.
@@ -74,10 +73,15 @@ function ProvasBoard() {
     () => [...new Set(exams.map((e) => e.discipline))].sort(),
     [exams]
   );
-  const visible = useMemo(
-    () => (discipline ? exams.filter((e) => e.discipline === discipline) : exams),
-    [exams, discipline]
-  );
+  const visible = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return exams.filter(
+      (e) =>
+        (!discipline || e.discipline === discipline) &&
+        (!term || e.document.title.toLowerCase().includes(term))
+    );
+  }, [exams, discipline, search]);
+  const activeFilters = [discipline, priority, mine].filter(Boolean).length;
 
   // O Kanban é genérico sobre `Document`; o card de prova casa pelo id do documento.
   const documents = visible.map((e) => e.document);
@@ -114,47 +118,56 @@ function ProvasBoard() {
   return (
     <div className="flex h-full min-h-0">
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <PageHeader title="Gestão de Provas" subtitle={`${visible.length} prova(s) no quadro`}>
-          <Link
-            href="/provas/nova"
-            className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white no-underline shadow-[0_1px_2px_rgba(0,0,0,.06)]"
-          >
-            <PlusIcon size={16} /> Nova Prova
-          </Link>
-        </PageHeader>
+        <BoardHeader
+          title="Gestão de Provas"
+          subtitle={`${visible.length} prova(s) ${activeFilters > 0 || search ? "(filtradas)" : "no total"}`}
+          search={search}
+          onSearch={setSearch}
+          searchPlaceholder="Buscar prova..."
+          activeFilters={activeFilters}
+          onClearFilters={() => {
+            setDiscipline("");
+            setPriority("");
+            setMine(false);
+          }}
+          action={
+            <Link href="/provas/nova" className={BOARD_ACTION}>
+              <PlusIcon size={15} /> Nova Prova
+            </Link>
+          }
+          filters={
+            <>
+              <select className={FILTER_SELECT} value={discipline} onChange={(e) => setDiscipline(e.target.value)}>
+                <option value="">Todas as disciplinas</option>
+                {disciplines.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+              <select
+                className={FILTER_SELECT}
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as Priority | "")}
+              >
+                <option value="">Todas as prioridades</option>
+                {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
+                  <option key={key} value={key}>
+                    {cfg.label}
+                  </option>
+                ))}
+              </select>
+              <label className="flex cursor-pointer items-center gap-2 text-sm">
+                <input type="checkbox" checked={mine} onChange={(e) => setMine(e.target.checked)} />
+                Minhas provas
+              </label>
+            </>
+          }
+        />
 
-        <div className="flex flex-wrap items-center gap-3 border-b border-line bg-white px-6 py-3">
-          <select className={FILTER} value={discipline} onChange={(e) => setDiscipline(e.target.value)}>
-            <option value="">Todas as disciplinas</option>
-            {disciplines.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-
-          <select
-            className={FILTER}
-            value={priority}
-            onChange={(e) => setPriority(e.target.value as Priority | "")}
-          >
-            <option value="">Todas as prioridades</option>
-            {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
-              <option key={key} value={key}>
-                {cfg.label}
-              </option>
-            ))}
-          </select>
-
-          <label className="flex cursor-pointer items-center gap-2 text-sm">
-            <input type="checkbox" checked={mine} onChange={(e) => setMine(e.target.checked)} />
-            Minhas provas
-          </label>
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-auto p-6">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4">
           {error && (
-            <p role="alert" className="mb-3 text-sm text-[#993C1D]">
+            <p role="alert" className="mb-3 text-sm text-danger">
               {error.message}
             </p>
           )}

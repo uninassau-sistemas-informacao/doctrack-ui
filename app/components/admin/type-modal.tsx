@@ -78,7 +78,7 @@ export default function TypeModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-6">
-      <div className="w-full max-w-md rounded-2xl border border-line bg-white p-5 shadow-lg">
+      <div className="w-full max-w-md rounded-2xl border border-line bg-surface p-5 shadow-lg">
         <h2 className="mb-4 text-base font-semibold">{type ? "Editar tipo" : "Novo tipo de documento"}</h2>
 
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
@@ -96,7 +96,7 @@ export default function TypeModal({
             ) : (
               <p className="mt-1 text-xs text-muted">Minúsculas, números, hífen ou underline.</p>
             )}
-            {fieldErrors.key && <p role="alert" className="mt-1 text-xs text-[#993C1D]">{fieldErrors.key}</p>}
+            {fieldErrors.key && <p role="alert" className="mt-1 text-xs text-danger">{fieldErrors.key}</p>}
           </div>
 
           <div>
@@ -107,7 +107,7 @@ export default function TypeModal({
               placeholder="Requerimento"
               className={FIELD}
             />
-            {fieldErrors.name && <p role="alert" className="mt-1 text-xs text-[#993C1D]">{fieldErrors.name}</p>}
+            {fieldErrors.name && <p role="alert" className="mt-1 text-xs text-danger">{fieldErrors.name}</p>}
           </div>
 
           <div>
@@ -119,7 +119,7 @@ export default function TypeModal({
               className={FIELD}
             />
             {fieldErrors.abbreviation && (
-              <p role="alert" className="mt-1 text-xs text-[#993C1D]">{fieldErrors.abbreviation}</p>
+              <p role="alert" className="mt-1 text-xs text-danger">{fieldErrors.abbreviation}</p>
             )}
           </div>
 
@@ -134,7 +134,7 @@ export default function TypeModal({
               className={FIELD}
             />
             {fieldErrors.defaultDeadlineDays && (
-              <p role="alert" className="mt-1 text-xs text-[#993C1D]">{fieldErrors.defaultDeadlineDays}</p>
+              <p role="alert" className="mt-1 text-xs text-danger">{fieldErrors.defaultDeadlineDays}</p>
             )}
           </div>
 
@@ -143,13 +143,13 @@ export default function TypeModal({
             Ativo (aparece no menu)
           </label>
 
-          {formError && <p role="alert" className="text-sm text-[#993C1D]">{formError}</p>}
+          {formError && <p role="alert" className="text-sm text-danger">{formError}</p>}
 
           <div className="mt-2 flex justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="cursor-pointer rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-primary"
+              className="cursor-pointer rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-semibold text-primary"
             >
               Cancelar
             </button>

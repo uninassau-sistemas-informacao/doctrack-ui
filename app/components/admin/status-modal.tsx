@@ -83,7 +83,7 @@ export default function StatusModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-6">
-      <div className="w-full max-w-md rounded-2xl border border-line bg-white p-5 shadow-lg">
+      <div className="w-full max-w-md rounded-2xl border border-line bg-surface p-5 shadow-lg">
         <h2 className="mb-4 text-base font-semibold">{status ? "Editar status" : "Novo status"}</h2>
 
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
@@ -96,7 +96,7 @@ export default function StatusModal({
               placeholder="em_analise"
               className={`${FIELD} disabled:opacity-60`}
             />
-            {fieldErrors.key && <p role="alert" className="mt-1 text-xs text-[#993C1D]">{fieldErrors.key}</p>}
+            {fieldErrors.key && <p role="alert" className="mt-1 text-xs text-danger">{fieldErrors.key}</p>}
           </div>
 
           <div>
@@ -107,7 +107,7 @@ export default function StatusModal({
               placeholder="Em análise"
               className={FIELD}
             />
-            {fieldErrors.label && <p role="alert" className="mt-1 text-xs text-[#993C1D]">{fieldErrors.label}</p>}
+            {fieldErrors.label && <p role="alert" className="mt-1 text-xs text-danger">{fieldErrors.label}</p>}
           </div>
 
           <div className="flex gap-3">
@@ -121,7 +121,7 @@ export default function StatusModal({
                 className={FIELD}
               />
               {fieldErrors.position && (
-                <p role="alert" className="mt-1 text-xs text-[#993C1D]">{fieldErrors.position}</p>
+                <p role="alert" className="mt-1 text-xs text-danger">{fieldErrors.position}</p>
               )}
             </div>
             <div>
@@ -132,7 +132,7 @@ export default function StatusModal({
                 onChange={(e) => setColor(e.target.value)}
                 className="h-[42px] w-16 cursor-pointer rounded-xl border border-line bg-canvas p-1"
               />
-              {fieldErrors.color && <p role="alert" className="mt-1 text-xs text-[#993C1D]">{fieldErrors.color}</p>}
+              {fieldErrors.color && <p role="alert" className="mt-1 text-xs text-danger">{fieldErrors.color}</p>}
             </div>
           </div>
 
@@ -145,13 +145,13 @@ export default function StatusModal({
             Status final (encerra a tramitação)
           </label>
 
-          {formError && <p role="alert" className="text-sm text-[#993C1D]">{formError}</p>}
+          {formError && <p role="alert" className="text-sm text-danger">{formError}</p>}
 
           <div className="mt-2 flex justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="cursor-pointer rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-primary"
+              className="cursor-pointer rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-semibold text-primary"
             >
               Cancelar
             </button>

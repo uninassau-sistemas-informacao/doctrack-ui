@@ -55,7 +55,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="sticky top-0 z-10 border-b border-line bg-white px-6 py-5">
+      <div className="sticky top-0 z-10 border-b border-line bg-surface px-6 py-5">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold">
@@ -79,7 +79,7 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-6 p-6">
         {isPending && <p className="text-sm text-muted">Carregando indicadores…</p>}
         {error && (
-          <p role="alert" className="text-sm text-[#993C1D]">
+          <p role="alert" className="text-sm text-danger">
             Não foi possível carregar os indicadores.
           </p>
         )}

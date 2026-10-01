@@ -41,7 +41,7 @@ export default function RecuperarSenhaPage() {
     <main className="flex min-h-screen items-center justify-center bg-canvas px-6 py-16 text-ink">
       <section className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-[#3B82F6]">
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary">
             <GraduationCapIcon size={26} color="#fff" />
           </div>
           <div>
@@ -50,7 +50,7 @@ export default function RecuperarSenhaPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-line-soft bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,.06)]">
+        <div className="rounded-2xl border border-line-soft bg-surface p-6 shadow-[0_1px_2px_rgba(0,0,0,.06)]">
           <h2 className="text-base font-semibold">Recuperar senha</h2>
           <p className="mt-0.5 text-sm text-muted">
             Informe seu e-mail para gerar um link de redefinição.
@@ -79,7 +79,7 @@ export default function RecuperarSenhaPage() {
               </div>
 
               {rateLimited && (
-                <p role="alert" className="text-sm text-[#993C1D]">
+                <p role="alert" className="text-sm text-danger">
                   {rateLimited}
                 </p>
               )}

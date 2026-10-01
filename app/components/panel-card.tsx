@@ -1,12 +1,15 @@
 "use client";
 
 import { WarningIcon } from "@phosphor-icons/react";
+import Link from "next/link";
 import type { PanelItemView, PanelView } from "../lib/dashboard-view";
+import { PriorityPill, StatusPill } from "./badges";
 
-function PanelItem({ item }: { item: PanelItemView }) {
+function PanelItem({ item, href }: { item: PanelItemView; href: string }) {
   return (
-    <div
-      className="flex w-full cursor-pointer gap-3 rounded-xl border text-left"
+    <Link
+      href={href}
+      className="flex w-full cursor-pointer gap-3 rounded-xl border text-left text-ink no-underline hover:bg-surface-2 hover:text-ink hover:no-underline"
       style={{
         alignItems: item.align,
         padding: item.padding,
@@ -35,33 +38,26 @@ function PanelItem({ item }: { item: PanelItemView }) {
         {item.sub && <p className="mt-0.5 text-xs text-muted">{item.sub}</p>}
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        {item.prioColor && (
-          <span className="size-2 rounded-full" style={{ background: item.prioColor }} />
-        )}
-        {item.badge && (
-          <span
-            className="whitespace-nowrap rounded-full px-2 py-[3px] text-[11px] font-semibold"
-            style={{ background: item.badge.bg, color: item.badge.color }}
-          >
-            {item.badge.label}
-          </span>
-        )}
+        {item.prio && <PriorityPill priority={item.prio} showLabel={false} />}
+        {item.badge && <StatusPill status={item.badge} />}
       </div>
-    </div>
+    </Link>
   );
 }
 
 export default function PanelCard({ panel }: { panel: PanelView }) {
   return (
     <div
-      className={`rounded-2xl border border-line bg-white p-5 ${panel.fullWidth ? "col-span-full" : ""}`}
+      className={`rounded-2xl border border-line bg-surface p-5 ${panel.fullWidth ? "col-span-full" : ""}`}
     >
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-base font-semibold">{panel.title}</h2>
         {panel.linkLabel && (
-          <button className="cursor-pointer p-0 text-xs text-primary">{panel.linkLabel}</button>
+          <Link href={panel.href} className="text-xs text-primary">
+            {panel.linkLabel}
+          </Link>
         )}
-        {panel.warn && <WarningIcon size={16} color="#BA7517" />}
+        {panel.warn && <WarningIcon size={16} className="text-warning" />}
       </div>
 
       {panel.items.length === 0 ? (
@@ -75,7 +71,7 @@ export default function PanelCard({ panel }: { panel: PanelView }) {
       ) : (
         <div className="flex flex-col gap-2">
           {panel.items.map((item) => (
-            <PanelItem key={item.key} item={item} />
+            <PanelItem key={item.key} item={item} href={panel.href} />
           ))}
         </div>
       )}

@@ -31,7 +31,7 @@ export default async function AceiteTermosPage() {
       <section className="w-full max-w-lg">
         <BrandHeader />
 
-        <div className="rounded-2xl border border-line-soft bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,.06)]">
+        <div className="rounded-2xl border border-line-soft bg-surface p-6 shadow-[0_1px_2px_rgba(0,0,0,.06)]">
           <h2 className="text-base font-semibold">Aceite os termos para continuar</h2>
           <p className="mt-0.5 text-sm text-muted">
             Atualizamos os Termos de Uso e a Política de Privacidade. Leia e aceite para acessar o

@@ -52,7 +52,7 @@ export default function ReassignModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-6">
-      <div className="w-full max-w-sm rounded-2xl border border-line bg-white p-5 shadow-lg">
+      <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-5 shadow-lg">
         <h2 className="mb-3 text-base font-semibold">Reatribuir responsável</h2>
 
         <label htmlFor="assignee" className="mb-1 block text-sm text-muted">
@@ -78,7 +78,7 @@ export default function ReassignModal({
         )}
 
         {usersQuery.error && (
-          <p role="alert" className="mt-2 text-sm text-[#993C1D]">
+          <p role="alert" className="mt-2 text-sm text-danger">
             {usersQuery.error instanceof Error
               ? usersQuery.error.message
               : "Não foi possível carregar a lista de usuários."}
@@ -86,13 +86,13 @@ export default function ReassignModal({
         )}
 
         {!usersQuery.isPending && !usersQuery.error && candidates.length === 0 && (
-          <p role="alert" className="mt-2 text-sm text-[#993C1D]">
+          <p role="alert" className="mt-2 text-sm text-danger">
             Nenhum responsável disponível para reatribuição.
           </p>
         )}
 
         {error && (
-          <p role="alert" className="mt-3 text-sm text-[#993C1D]">
+          <p role="alert" className="mt-3 text-sm text-danger">
             {error}
           </p>
         )}

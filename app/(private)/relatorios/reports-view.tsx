@@ -11,7 +11,7 @@ import type { DocumentType } from "../../../lib/api/dto/workflowSchema";
 import PageHeader from "../../components/page-header";
 import ReportChart, { type ChartDatum } from "../../components/reports/report-chart";
 
-const FILTER = "rounded-xl border border-line bg-white px-3 py-2 text-sm outline-none focus:border-primary";
+const FILTER = "rounded-xl border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-primary";
 
 /** Uma casa decimal: horas com mais dígitos é falsa precisão. */
 function hours(value: number): string {
@@ -100,7 +100,7 @@ export default function ReportsView({ documentTypes }: { documentTypes: Document
         }
       />
 
-      <div className="flex flex-wrap items-center gap-3 border-b border-line bg-white px-6 py-3">
+      <div className="flex flex-wrap items-center gap-3 border-b border-line bg-surface px-6 py-3">
         <label className="flex items-center gap-2 text-sm text-muted">
           De
           <input type="date" className={FILTER} value={from} onChange={(e) => setFrom(e.target.value)} />
@@ -124,7 +124,7 @@ export default function ReportsView({ documentTypes }: { documentTypes: Document
               setTo("");
               setTypeKey("");
             }}
-            className="cursor-pointer rounded-xl border border-line bg-white px-3 py-2 text-sm text-muted"
+            className="cursor-pointer rounded-xl border border-line bg-surface px-3 py-2 text-sm text-muted"
           >
             Limpar
           </button>
@@ -133,12 +133,12 @@ export default function ReportsView({ documentTypes }: { documentTypes: Document
 
       <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-6">
         {error && (
-          <p role="alert" className="text-sm text-[#993C1D]">
+          <p role="alert" className="text-sm text-danger">
             {error instanceof ApiError ? error.message : "Não foi possível carregar os relatórios."}
           </p>
         )}
         {exportError && (
-          <p role="alert" className="text-sm text-[#993C1D]">
+          <p role="alert" className="text-sm text-danger">
             {exportError}
           </p>
         )}
@@ -245,7 +245,7 @@ function ReportBlock({
   valueSuffix?: string;
 }) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-line bg-white">
+    <section className="shrink-0 overflow-hidden rounded-2xl border border-line bg-surface">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-canvas px-4 py-3">
         <div>
           <h2 className="text-sm font-semibold">{title}</h2>
@@ -257,7 +257,7 @@ function ReportBlock({
               key={format}
               onClick={() => onExport(report, format)}
               disabled={exporting === `${report}-${format}`}
-              className="flex items-center gap-2 rounded-xl border border-line bg-white px-3 py-2 text-xs font-semibold text-muted disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-xs font-semibold text-muted disabled:opacity-50"
             >
               <DownloadSimpleIcon size={14} />
               {exporting === `${report}-${format}` ? "Baixando…" : format.toUpperCase()}

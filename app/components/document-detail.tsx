@@ -79,7 +79,7 @@ export default function DocumentDetailPanel({
   const badge = doc ? badgeFromStatus(doc.status) : null;
 
   return (
-    <aside className="flex h-full w-[440px] shrink-0 flex-col border-l border-line bg-white">
+    <aside className="flex h-full w-[440px] shrink-0 flex-col border-l border-line bg-surface">
       <header className="flex items-start gap-3 border-b border-line px-5 py-4">
         <div className="min-w-0 flex-1">
           <p className="truncate text-base font-semibold">{doc?.title ?? "Carregando…"}</p>
@@ -133,7 +133,7 @@ export default function DocumentDetailPanel({
 
       <div className="flex-1 overflow-y-auto px-5 py-4">
         {error && (
-          <p role="alert" className="text-sm text-[#993C1D]">
+          <p role="alert" className="text-sm text-danger">
             {error instanceof Error ? error.message : "Não foi possível carregar o documento."}
           </p>
         )}
@@ -320,7 +320,7 @@ function TransitionModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-6">
-      <div className="w-full max-w-sm rounded-2xl border border-line bg-white p-5 shadow-lg">
+      <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-5 shadow-lg">
         <h2 className="text-base font-semibold">{transition.label}</h2>
         <p className="mt-1 text-sm text-muted">
           {transition.requiresComment
@@ -338,7 +338,7 @@ function TransitionModal({
         />
 
         {error && (
-          <p role="alert" className="mt-2 text-sm text-[#993C1D]">
+          <p role="alert" className="mt-2 text-sm text-danger">
             {error}
           </p>
         )}
