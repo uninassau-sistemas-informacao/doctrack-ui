@@ -172,29 +172,6 @@ export default function DocumentDetailPanel({
                 <p className="whitespace-pre-wrap text-sm">{exam.notes}</p>
               </div>
             )}
-
-            {exam && (
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">
-                  Questões ({exam.questions.length})
-                </p>
-                {exam.questions.length === 0 ? (
-                  <p className="text-sm text-muted">Nenhuma questão cadastrada.</p>
-                ) : (
-                  <ol className="flex flex-col gap-2">
-                    {exam.questions.map((q) => (
-                      <li
-                        key={q.id}
-                        className="flex gap-2 rounded-xl border border-line bg-canvas p-3 text-sm"
-                      >
-                        <span className="shrink-0 font-semibold text-muted">{q.position}.</span>
-                        <span className="whitespace-pre-wrap">{q.content}</span>
-                      </li>
-                    ))}
-                  </ol>
-                )}
-              </div>
-            )}
           </div>
         )}
 

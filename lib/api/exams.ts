@@ -22,7 +22,7 @@ function query(filter: ExamFilter = {}): string {
 
 /** Provas (UC01). O id das rotas é o do **documento**, não o da tabela `exams`. */
 export const ExamsApi = {
-  /** Cards do Kanban: satélite + documento, sem as questões. */
+  /** Cards do Kanban: satélite + documento. */
   async list(filter?: ExamFilter): Promise<ExamCard[]> {
     return z.array(examCardSchema).parse(await apiFetch<unknown>(`/exams${query(filter)}`));
   },
@@ -35,7 +35,7 @@ export const ExamsApi = {
     return examSchema.parse(data);
   },
 
-  /** Só em `rascunho`/`reprovado` e só pelo dono; reescreve a lista inteira de questões. */
+  /** Só em `rascunho`/`reprovado` e só pelo dono. */
   async update(documentId: number, input: ExamInput): Promise<Exam> {
     const data = await apiFetch<unknown>(`/exams/${documentId}`, {
       method: "PUT",

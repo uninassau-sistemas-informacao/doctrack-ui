@@ -1,15 +1,17 @@
 "use client";
 
-import { PlusIcon, TrashIcon, CaretUpIcon, CaretDownIcon, PaperclipIcon } from "@phosphor-icons/react";
+import { PaperclipIcon, TrashIcon, UploadSimpleIcon } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useRef, useState } from "react";
 
+import { AttachmentsApi } from "../../lib/api/attachments";
 import { ApiError } from "../../lib/api/client";
 import { ExamsApi } from "../../lib/api/exams";
 import { DocumentsApi } from "../../lib/api/documents";
 import { examInputSchema, type Exam, type ExamInput } from "../../lib/api/dto/examSchema";
 import type { Priority } from "../../lib/api/dto/documentSchema";
 import { PRIORITY_CONFIG } from "../lib/data";
+import AttachmentList, { ACCEPT, sizeLabel } from "./attachment-list";
 
 const FIELD = "rounded-xl border border-line bg-canvas px-3 py-2.5 text-sm outline-none focus:border-primary";
 
@@ -19,6 +21,11 @@ const FIELD = "rounded-xl border border-line bg-canvas px-3 py-2.5 text-sm outli
  *
  * "Salvar e submeter" grava e, em seguida, dispara a transição `submeter` buscada em
  * `GET /documents/{id}/transitions` — a UI não guarda id de transição, quem manda é o motor.
+ *
+ * Anexo: na edição o documento já existe e a lista de anexos sobe na hora. Na criação o anexo
+ * não existe antes do documento (FK), então os arquivos ficam no estado e sobem logo depois do
+ * POST. Se um envio falhar, a prova já está salva: `createdId` faz a nova tentativa virar PUT,
+ * e só os arquivos que ainda não subiram são reenviados.
  */
 export default function ExamForm({ exam }: { exam?: Exam }) {
   const router = useRouter();
@@ -32,19 +39,15 @@ export default function ExamForm({ exam }: { exam?: Exam }) {
   const [priority, setPriority] = useState<Priority>(doc?.priority ?? "media");
   const [deadline, setDeadline] = useState(doc?.deadline ?? "");
   const [notes, setNotes] = useState(exam?.notes ?? "");
-  const [questions, setQuestions] = useState<string[]>(exam?.questions.map((q) => q.content) ?? []);
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<null | "draft" | "submit">(null);
-
-  function moveQuestion(index: number, delta: number) {
-    const target = index + delta;
-    if (target < 0 || target >= questions.length) return;
-    const next = [...questions];
-    [next[index], next[target]] = [next[target], next[index]];
-    setQuestions(next);
-  }
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [createdId, setCreatedId] = useState<number | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const documentId = doc?.id ?? createdId;
 
   function buildInput(): ExamInput | null {
     const parsed = examInputSchema.safeParse({
@@ -56,9 +59,6 @@ export default function ExamForm({ exam }: { exam?: Exam }) {
       priority,
       deadline: deadline || null,
       notes: notes || null,
-      // Questões em branco não vão para a API: o rascunho aceita lista vazia, e uma
-      // linha vazia esquecida no formulário só viraria um 422 do backend.
-      questions: questions.map((q) => q.trim()).filter(Boolean),
     });
 
     if (!parsed.success) {
@@ -82,14 +82,22 @@ export default function ExamForm({ exam }: { exam?: Exam }) {
     const input = buildInput();
     if (!input) return;
 
-    if (mode === "submit" && input.questions?.length === 0) {
-      setFormError("Adicione pelo menos uma questão para submeter a prova.");
+    if (mode === "submit" && !doc && pendingFiles.length === 0) {
+      setFormError("Anexe o arquivo da prova para submeter.");
       return;
     }
 
     setSubmitting(mode);
     try {
-      const saved = doc ? await ExamsApi.update(doc.id, input) : await ExamsApi.create(input);
+      const saved = documentId
+        ? await ExamsApi.update(documentId, input)
+        : await ExamsApi.create(input);
+      setCreatedId(saved.document.id);
+
+      for (const file of pendingFiles) {
+        await AttachmentsApi.upload(saved.document.id, file);
+        setPendingFiles((files) => files.filter((f) => f !== file));
+      }
 
       if (mode === "submit") {
         const transitions = await DocumentsApi.availableTransitions(saved.document.id);
@@ -179,73 +187,79 @@ export default function ExamForm({ exam }: { exam?: Exam }) {
       </section>
 
       <section className="rounded-2xl border border-line bg-surface p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-base font-semibold">
-            Questões <span className="font-normal text-muted">({questions.length})</span>
-          </h2>
-          <button
-            type="button"
-            onClick={() => setQuestions((q) => [...q, ""])}
-            className="flex cursor-pointer items-center gap-2 rounded-xl border border-line px-3 py-1.5 text-xs font-semibold text-primary"
-          >
-            <PlusIcon size={14} /> Adicionar questão
-          </button>
-        </div>
-
-        {questions.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted">
-            Nenhuma questão. O rascunho pode ser salvo assim, mas a submissão exige ao menos uma.
-          </p>
+        <h2 className="mb-1 text-base font-semibold">Arquivo da prova</h2>
+        <p className="mb-3 text-xs text-muted">O anexo é obrigatório para enviar para revisão.</p>
+        {documentId ? (
+          <AttachmentList documentId={documentId} canEdit />
         ) : (
-          <div className="flex flex-col gap-2">
-            {questions.map((content, index) => (
-              <div key={index} className="flex items-start gap-2">
-                <span className="mt-2.5 w-6 shrink-0 text-center text-xs font-semibold text-muted">
-                  {index + 1}
-                </span>
-                <textarea
-                  rows={2}
-                  value={content}
-                  onChange={(e) =>
-                    setQuestions((qs) => qs.map((q, i) => (i === index ? e.target.value : q)))
-                  }
-                  className={`${FIELD} min-w-0 flex-1 resize-y`}
-                />
-                <div className="flex shrink-0 flex-col gap-1">
-                  <IconButton label="Mover para cima" onClick={() => moveQuestion(index, -1)}>
-                    <CaretUpIcon size={13} />
-                  </IconButton>
-                  <IconButton label="Mover para baixo" onClick={() => moveQuestion(index, 1)}>
-                    <CaretDownIcon size={13} />
-                  </IconButton>
-                </div>
-                <IconButton
-                  label="Remover questão"
-                  onClick={() => setQuestions((qs) => qs.filter((_, i) => i !== index))}
-                >
-                  <TrashIcon size={14} />
-                </IconButton>
-              </div>
-            ))}
+          <div className="flex flex-col gap-3">
+            <div
+              onDragOver={(event) => {
+                event.preventDefault();
+                setDragging(true);
+              }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={(event) => {
+                event.preventDefault();
+                setDragging(false);
+                const files = Array.from(event.dataTransfer.files ?? []);
+                setPendingFiles((current) => [...current, ...files]);
+              }}
+              className={`flex flex-col items-center gap-2 rounded-xl border border-dashed py-6 text-center ${
+                dragging ? "border-primary bg-primary-soft" : "border-line"
+              }`}
+            >
+              <UploadSimpleIcon size={22} className="text-muted" />
+              <p className="text-sm text-muted">Arraste o arquivo aqui ou</p>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="cursor-pointer rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-primary"
+              >
+                Escolher arquivo
+              </button>
+              <p className="text-xs text-muted">PDF, DOC, DOCX, JPG ou PNG, até 10 MB</p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={ACCEPT}
+                multiple
+                className="hidden"
+                onChange={(event) => {
+                  const files = Array.from(event.target.files ?? []);
+                  event.currentTarget.value = "";
+                  setPendingFiles((current) => [...current, ...files]);
+                }}
+              />
+            </div>
           </div>
         )}
-        {fieldErrors.questions && (
-          <p className="mt-2 text-xs text-danger">{fieldErrors.questions}</p>
+        {/* Fica fora do ternário: se um envio falhar depois do POST, a tela passa para a lista
+            real de anexos e o que ainda não subiu precisa continuar visível. */}
+        {pendingFiles.length > 0 && (
+          <ul className="mt-3 flex list-none flex-col gap-2 p-0">
+            {pendingFiles.map((file, index) => (
+              <li
+                key={`${file.name}-${index}`}
+                className="flex items-center gap-3 rounded-xl border border-line bg-surface px-3 py-2"
+              >
+                <PaperclipIcon size={16} className="shrink-0 text-muted" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{file.name}</p>
+                  <p className="text-xs text-muted">{sizeLabel(file.size)} · enviado ao salvar</p>
+                </div>
+                <button
+                  type="button"
+                  aria-label={`Remover ${file.name}`}
+                  onClick={() => setPendingFiles((files) => files.filter((f) => f !== file))}
+                  className="flex size-7 cursor-pointer items-center justify-center rounded-lg border border-line text-muted"
+                >
+                  <TrashIcon size={14} />
+                </button>
+              </li>
+            ))}
+          </ul>
         )}
-      </section>
-
-      {/* Anexo pertence ao documento e exige que ele exista (FK). Em vez de segurar arquivo em
-          memória e subir depois de salvar — estado intermediário com falha própria —, a criação
-          orienta e o envio acontece na aba Anexos do detalhe, caminho único para todos os tipos. */}
-      <section className="rounded-2xl border border-line bg-surface p-5">
-        <h2 className="mb-3 text-base font-semibold">Anexos</h2>
-        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line py-8 text-center">
-          <PaperclipIcon size={22} className="text-muted" />
-          <p className="text-sm text-muted">
-            Salve o rascunho para anexar o arquivo na aba Anexos do documento.
-          </p>
-          <p className="text-xs text-muted">O anexo é obrigatório para enviar para revisão.</p>
-        </div>
       </section>
 
       {formError && (
@@ -301,27 +315,5 @@ function Field({
       {children}
       {error && <p className="text-xs text-danger">{error}</p>}
     </div>
-  );
-}
-
-function IconButton({
-  label,
-  onClick,
-  children,
-}: {
-  label: string;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      onClick={onClick}
-      className="flex size-6 cursor-pointer items-center justify-center rounded-lg border border-line text-muted"
-    >
-      {children}
-    </button>
   );
 }

@@ -8,9 +8,9 @@ import { AttachmentsApi } from "../../lib/api/attachments";
 import type { Attachment } from "../../lib/api/dto/attachmentSchema";
 import { formatDateTime } from "../lib/data";
 
-const ACCEPT = ".pdf,.doc,.docx,.jpg,.jpeg,.png";
+export const ACCEPT = ".pdf,.doc,.docx,.jpg,.jpeg,.png";
 
-function sizeLabel(bytes: number): string {
+export function sizeLabel(bytes: number): string {
   return bytes < 1048576 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1048576).toFixed(1)} MB`;
 }
 
