@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useState, useSyncExternalStore } from "react";
 
 import { canSeeReports } from "../../lib/api/dto/authSchema";
 import type { MeResponse } from "../../lib/api/dto/authSchema";
@@ -31,6 +32,18 @@ function toUser(me: MeResponse): User {
   };
 }
 
+const MOBILE_QUERY = "(max-width: 767px)";
+
+function subscribeMobile(onChange: () => void) {
+  const query = window.matchMedia(MOBILE_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+function isMobileNow() {
+  return window.matchMedia(MOBILE_QUERY).matches;
+}
+
 /** Moldura das telas privadas: sidebar fixa + área de conteúdo rolável. */
 export default function Shell({
   me,
@@ -41,7 +54,16 @@ export default function Shell({
   documentTypes: DocumentType[];
   children: React.ReactNode;
 }) {
-  const [collapsed, setCollapsed] = useState(false);
+  // No celular o menu aberto come metade da tela: começa recolhido e recolhe a cada navegação.
+  const isMobile = useSyncExternalStore(subscribeMobile, isMobileNow, () => false);
+  const [toggled, setToggled] = useState<boolean | null>(null);
+  const pathname = usePathname();
+  const [lastPath, setLastPath] = useState(pathname);
+  if (pathname !== lastPath) {
+    setLastPath(pathname);
+    if (isMobile) setToggled(true);
+  }
+  const collapsed = toggled ?? isMobile;
   const unreadCount = useUnreadCount();
   const { secondsLeft, stayConnected } = useIdleLogout();
 
@@ -55,9 +77,10 @@ export default function Shell({
         unreadCount={unreadCount}
         canManageUsers={me.manageableRoles.length > 0}
         canSeeReports={canSeeReports(me.role)}
-        onToggle={() => setCollapsed((c) => !c)}
+        onToggle={() => setToggled(!collapsed)}
       />
-      <main className="flex min-w-0 flex-1 flex-col overflow-hidden">{children}</main>
+      {/* overflow-y-auto: telas sem contêiner de rolagem próprio (formulários) rolam aqui. */}
+      <main className="flex min-w-0 flex-1 flex-col overflow-y-auto max-md:pl-14">{children}</main>
     </div>
   );
 }

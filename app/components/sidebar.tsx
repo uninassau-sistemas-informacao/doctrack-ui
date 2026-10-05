@@ -116,7 +116,7 @@ export default function Sidebar({
 
   return (
     <aside
-      className="relative flex h-full shrink-0 flex-col border-r border-line-soft bg-canvas transition-[width] duration-300"
+      className="relative flex h-full shrink-0 flex-col border-r border-line-soft bg-canvas transition-[width] duration-300 max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-30"
       style={{ width: collapsed ? 56 : 200 }}
     >
       <div className="flex items-center gap-3 overflow-hidden border-b border-line-soft px-4 py-5">

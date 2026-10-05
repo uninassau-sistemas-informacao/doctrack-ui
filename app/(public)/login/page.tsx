@@ -67,7 +67,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
             </p>
           )}
 
-          <form onSubmit={handleSubmit} noValidate className="mt-5 flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="email" className="text-sm font-medium">
                 E-mail

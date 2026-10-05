@@ -126,8 +126,8 @@ export default function ExamForm({ exam }: { exam?: Exam }) {
     <form onSubmit={(e) => handleSubmit(e, "draft")} noValidate className="flex flex-col gap-6">
       <section className="rounded-2xl border border-line bg-surface p-5">
         <h2 className="mb-4 text-base font-semibold">Dados da prova</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="Título" error={fieldErrors.title} className="col-span-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label="Título" error={fieldErrors.title} className="sm:col-span-2">
             <input className={FIELD} value={title} onChange={(e) => setTitle(e.target.value)} />
           </Field>
           <Field label="Disciplina" error={fieldErrors.discipline}>
@@ -175,7 +175,7 @@ export default function ExamForm({ exam }: { exam?: Exam }) {
               onChange={(e) => setDeadline(e.target.value)}
             />
           </Field>
-          <Field label="Observações" className="col-span-2">
+          <Field label="Observações" className="sm:col-span-2">
             <textarea
               rows={3}
               className={`${FIELD} resize-y`}

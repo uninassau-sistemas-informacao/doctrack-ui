@@ -86,8 +86,8 @@ export default function RecordForm() {
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
       <section className="rounded-2xl border border-line bg-surface p-5">
         <h2 className="mb-4 text-base font-semibold">Dados da ata</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="Título" error={fieldErrors.title} className="col-span-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label="Título" error={fieldErrors.title} className="sm:col-span-2">
             <input className={FIELD} value={title} onChange={(e) => setTitle(e.target.value)} />
           </Field>
           <Field label="Turma" error={fieldErrors.classGroupId}>
@@ -140,7 +140,7 @@ export default function RecordForm() {
               onChange={(e) => setDeadline(e.target.value)}
             />
           </Field>
-          <Field label="Descrição" className="col-span-2">
+          <Field label="Descrição" className="sm:col-span-2">
             <textarea
               rows={3}
               className={`${FIELD} resize-y`}
