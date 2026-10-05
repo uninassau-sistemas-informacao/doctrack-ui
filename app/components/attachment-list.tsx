@@ -1,6 +1,6 @@
 "use client";
 
-import { DownloadSimpleIcon, PaperclipIcon, TrashIcon, UploadSimpleIcon } from "@phosphor-icons/react";
+import { DownloadSimpleIcon, EyeIcon, PaperclipIcon, TrashIcon, UploadSimpleIcon } from "@phosphor-icons/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 
@@ -9,6 +9,11 @@ import type { Attachment } from "../../lib/api/dto/attachmentSchema";
 import { formatDateTime } from "../lib/data";
 
 export const ACCEPT = ".pdf,.doc,.docx,.jpg,.jpeg,.png";
+
+/** O navegador só sabe mostrar PDF e imagem; DOC/DOCX baixaria do mesmo jeito. */
+function canOpenInBrowser(attachment: Attachment): boolean {
+  return attachment.contentType === "application/pdf" || attachment.contentType.startsWith("image/");
+}
 
 export function sizeLabel(bytes: number): string {
   return bytes < 1048576 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1048576).toFixed(1)} MB`;
@@ -58,12 +63,12 @@ export default function AttachmentList({
     onError: (err) => setError(err instanceof Error ? err.message : "Não foi possível cancelar o anexo."),
   });
 
-  async function download(attachment: Attachment) {
+  async function download(attachment: Attachment, inline = false) {
     try {
-      const url = await AttachmentsApi.downloadUrl(documentId, attachment.id);
+      const url = await AttachmentsApi.downloadUrl(documentId, attachment.id, inline);
       window.open(url, "_blank", "noopener");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Não foi possível baixar o arquivo.");
+      setError(err instanceof Error ? err.message : "Não foi possível abrir o arquivo.");
     }
   }
 
@@ -143,8 +148,20 @@ export default function AttachmentList({
                 {formatDateTime(attachment.createdAt)}
               </p>
             </div>
+            {canOpenInBrowser(attachment) && (
+              <button
+                type="button"
+                title="Abrir"
+                aria-label={`Abrir ${attachment.originalName}`}
+                onClick={() => void download(attachment, true)}
+                className="flex size-7 cursor-pointer items-center justify-center rounded-lg border border-line text-muted"
+              >
+                <EyeIcon size={14} />
+              </button>
+            )}
             <button
               type="button"
+              title="Baixar"
               aria-label={`Baixar ${attachment.originalName}`}
               onClick={() => void download(attachment)}
               className="flex size-7 cursor-pointer items-center justify-center rounded-lg border border-line text-muted"

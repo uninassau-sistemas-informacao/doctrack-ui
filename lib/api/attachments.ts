@@ -51,9 +51,12 @@ export const AttachmentsApi = {
     );
   },
 
-  async downloadUrl(documentId: number, attachmentId: number): Promise<string> {
+  /** `inline` pede ao storage para o navegador mostrar o arquivo em vez de baixar. */
+  async downloadUrl(documentId: number, attachmentId: number, inline = false): Promise<string> {
     const parsed = downloadUrlSchema.parse(
-      await apiFetch<unknown>(`/documents/${documentId}/attachments/${attachmentId}/download-url`)
+      await apiFetch<unknown>(
+        `/documents/${documentId}/attachments/${attachmentId}/download-url${inline ? "?inline=true" : ""}`
+      )
     );
     return parsed.downloadUrl;
   },
