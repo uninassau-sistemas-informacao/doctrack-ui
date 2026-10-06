@@ -18,7 +18,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { AuthApi } from "../../lib/api/auth";
-import { canManageClassGroups } from "../../lib/api/dto/authSchema";
+import { canSeeClassGroups } from "../../lib/api/dto/authSchema";
 import type { DocumentType } from "../../lib/api/dto/workflowSchema";
 import { ROLE_LABELS, User } from "../lib/data";
 import { Avatar } from "./badges";
@@ -110,7 +110,7 @@ export default function Sidebar({
   const navItems: NavItem[] = [
     { key: "dashboard", icon: SquaresFourIcon, label: "Dashboard", href: "/" },
     ...typeItems,
-    ...(canManageClassGroups(user.role)
+    ...(canSeeClassGroups(user.role)
       ? [{ key: "turmas", icon: UsersThreeIcon, label: "Turmas", href: "/turmas" }]
       : []),
     ...(canSeeReports

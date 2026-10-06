@@ -19,9 +19,12 @@ export type Role = z.infer<typeof roleSchema>;
  * o item por aqui e a página `/relatorios` guarda a rota pela mesma função, para o menu e a
  * rota nunca discordarem. A API recusa de novo com 403; esconder link não é controle de acesso.
  */
-/** Gestão de turmas é só do professor: mesma função na sidebar e na guarda de `/turmas`. */
-export function canManageClassGroups(role: Role): boolean {
-  return role === "professor";
+/**
+ * `/turmas`: o professor gerencia as dele; coordenador e admin têm a visão geral, só leitura.
+ * Mesma função na sidebar e na guarda da rota.
+ */
+export function canSeeClassGroups(role: Role): boolean {
+  return role === "professor" || role === "coordenador" || role === "admin";
 }
 
 export function canSeeReports(role: Role): boolean {

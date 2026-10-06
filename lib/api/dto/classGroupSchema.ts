@@ -5,7 +5,14 @@ export const classGroupSchema = z.object({
   code: z.string(),
   discipline: z.string().nullable(),
   period: z.string().nullable(),
+  professorId: z.number().nullable(),
+  professorName: z.string().nullable(),
+  supervisorId: z.number().nullable(),
+  supervisorName: z.string().nullable(),
 });
+
+export const userOptionSchema = z.object({ id: z.number(), name: z.string() });
+export type UserOption = z.infer<typeof userOptionSchema>;
 
 export const studentSchema = z.object({
   id: z.number(),
