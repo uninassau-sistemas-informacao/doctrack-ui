@@ -17,8 +17,9 @@ const FIELD = "rounded-xl border border-line bg-canvas px-3 py-2.5 text-sm outli
  * Criação de ata (E5.4). Só criação: depois que a ata existe, o que se edita são as notas,
  * na própria tela do quadro — por isso não há variante de edição como em `exam-form`.
  *
- * A turma é `<select>` e não texto livre: as entradas da ata nascem da lista de chamada da
- * turma escolhida (UC11), então o id precisa ser o real.
+ * A turma é texto com sugestões (`<datalist>`): código que bate com uma turma existente manda o
+ * id e a ata nasce com a lista de chamada dela (UC11); código novo vai como `classGroupCode` e a
+ * API cria a turma, sem alunos — quem vincula alunos é a aba Turmas da administração.
  */
 export default function RecordForm() {
   const router = useRouter();
@@ -30,7 +31,7 @@ export default function RecordForm() {
   const classGroups = classGroupsQuery.data ?? [];
 
   const [title, setTitle] = useState("");
-  const [classGroupId, setClassGroupId] = useState("");
+  const [classGroupText, setClassGroupText] = useState("");
   const [evaluationType, setEvaluationType] = useState("");
   const [date, setDate] = useState("");
   const [priority, setPriority] = useState<Priority>("media");
@@ -45,13 +46,21 @@ export default function RecordForm() {
     event.preventDefault();
     setFormError(null);
 
+    const existingGroup = classGroups.find(
+      (group) => group.code.toLowerCase() === classGroupText.trim().toLowerCase(),
+    );
+    if (classGroupText.trim() === "") {
+      setFieldErrors({ classGroupCode: "Turma é obrigatória" });
+      return;
+    }
+
     const parsed = recordInputSchema.safeParse({
       title,
       description: description || null,
       priority,
       deadline: deadline || null,
-      // Sem turma escolhida o campo vira `NaN`, que o schema rejeita como "Turma é obrigatória".
-      classGroupId: classGroupId === "" ? Number.NaN : Number(classGroupId),
+      classGroupId: existingGroup?.id ?? null,
+      classGroupCode: existingGroup ? null : classGroupText.trim(),
       evaluationType,
       date,
     });
@@ -90,19 +99,21 @@ export default function RecordForm() {
           <Field label="Título" error={fieldErrors.title} className="sm:col-span-2">
             <input className={FIELD} value={title} onChange={(e) => setTitle(e.target.value)} />
           </Field>
-          <Field label="Turma" error={fieldErrors.classGroupId}>
-            <select
+          <Field label="Turma" error={fieldErrors.classGroupCode}>
+            <input
               className={FIELD}
-              value={classGroupId}
-              onChange={(e) => setClassGroupId(e.target.value)}
-            >
-              <option value="">Selecione a turma</option>
+              list="class-groups"
+              placeholder="Escolha ou digite uma turma nova"
+              value={classGroupText}
+              onChange={(e) => setClassGroupText(e.target.value)}
+            />
+            <datalist id="class-groups">
               {classGroups.map((group) => (
-                <option key={group.id} value={group.id}>
-                  {group.code} — {group.discipline} ({group.period})
+                <option key={group.id} value={group.code}>
+                  {[group.discipline, group.period].filter(Boolean).join(" · ")}
                 </option>
               ))}
-            </select>
+            </datalist>
           </Field>
           <Field label="Tipo de avaliação" error={fieldErrors.evaluationType}>
             <input

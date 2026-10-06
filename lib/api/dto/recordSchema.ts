@@ -22,7 +22,8 @@ export const recordSchema = z.object({
   document: documentSchema,
   classGroupId: z.number(),
   classGroupCode: z.string(),
-  discipline: z.string(),
+  // Turma digitada na ata nasce sem disciplina; "—" aqui evita tratar nulo em cada tela.
+  discipline: z.string().nullable().transform((v) => v ?? "—"),
   evaluationType: z.string(),
   date: z.string(),
   examDocumentId: z.number().nullable(),
@@ -62,7 +63,9 @@ export const recordInputSchema = z.object({
   description: z.string().nullish(),
   priority: prioritySchema.optional(),
   deadline: z.string().nullish(),
-  classGroupId: z.number({ message: "Turma é obrigatória" }),
+  // Um dos dois: id de turma existente ou código digitado (a API cria a turma, sem alunos).
+  classGroupId: z.number().nullish(),
+  classGroupCode: z.string().trim().max(40).nullish(),
   examDocumentId: z.number().nullish(),
   evaluationType: z.string().trim().min(1, "Tipo de avaliação é obrigatório").max(60),
   date: z.string().min(1, "Data é obrigatória"),
