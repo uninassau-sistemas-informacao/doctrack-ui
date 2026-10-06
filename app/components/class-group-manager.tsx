@@ -5,8 +5,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useState } from "react";
 import { z } from "zod";
 
-import { ClassGroupsApi } from "../../../lib/api/classGroups";
-import { classGroupInputSchema, studentInputSchema } from "../../../lib/api/dto/classGroupSchema";
+import { ClassGroupsApi } from "../../lib/api/classGroups";
+import { classGroupInputSchema, studentInputSchema } from "../../lib/api/dto/classGroupSchema";
 
 const FIELD = "rounded-xl border border-line bg-canvas px-3 py-2 text-sm outline-none focus:border-primary";
 const BUTTON =

@@ -6,14 +6,12 @@ import type { Role } from "../../../lib/api/dto/authSchema";
 import PageHeader from "../../components/page-header";
 import TypeList from "../../components/admin/type-list";
 import AuditTable from "../../components/admin/audit-table";
-import ClassGroupManager from "../../components/admin/class-group-manager";
 import UserTable from "../../components/admin/user-table";
 
-type Tab = "usuarios" | "turmas" | "tipos" | "auditoria";
+type Tab = "usuarios" | "tipos" | "auditoria";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "usuarios", label: "Usuários" },
-  { key: "turmas", label: "Turmas" },
   { key: "tipos", label: "Tipos de Documento" },
   { key: "auditoria", label: "Auditoria" },
 ];
@@ -40,14 +38,13 @@ export default function AdminTabs({
   // qualquer chave que nao fosse "usuarios" como admin, e a aba nova cai nessa regra de
   // proposito: a trilha mostra IP, e-mail tentado em login falho e de/para de dado pessoal.
   const tabs = TABS.filter((item) =>
-    // "turmas" segue o mesmo publico de "usuarios": a API libera supervisor, coordenador e admin.
-    item.key === "usuarios" || item.key === "turmas" ? manageableRoles.length > 0 : role === "admin",
+    item.key === "usuarios" ? manageableRoles.length > 0 : role === "admin",
   );
   const [tab, setTab] = useState<Tab>(tabs[0].key);
 
   return (
     <>
-      <PageHeader title="Administração" subtitle="Gerenciamento de usuários, turmas, tipos, fluxos e auditoria" />
+      <PageHeader title="Administração" subtitle="Gerenciamento de usuários, tipos, fluxos e auditoria" />
 
       <div className="flex gap-1 border-b border-line-soft bg-surface px-6">
         {tabs.map((item) => (
@@ -67,7 +64,6 @@ export default function AdminTabs({
 
       <div className="flex-1 overflow-y-auto p-6">
         {tab === "usuarios" && <UserTable currentUserId={currentUserId} manageableRoles={manageableRoles} />}
-        {tab === "turmas" && <ClassGroupManager />}
         {tab === "tipos" && <TypeList />}
         {tab === "auditoria" && <AuditTable />}
       </div>
