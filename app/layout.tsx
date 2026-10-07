@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "AcadêmicaFlow — Gestão Documental",
+  title: "Uninassau — Gestão Documental",
   description:
     "Gestão documental acadêmica: fluxo de provas e atas de avaliação",
 };

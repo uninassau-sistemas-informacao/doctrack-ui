@@ -130,7 +130,7 @@ export default function Sidebar({
         </div>
         {expanded && (
           <div className="overflow-hidden">
-            <p className="whitespace-nowrap text-sm font-semibold leading-tight">AcadêmicaFlow</p>
+            <p className="whitespace-nowrap text-sm font-semibold leading-tight">Uninassau</p>
             <p className="whitespace-nowrap text-xs text-muted">Gestão Documental</p>
           </div>
         )}
