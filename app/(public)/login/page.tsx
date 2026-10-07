@@ -50,7 +50,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
             <GraduationCapIcon size={26} color="#fff" />
           </div>
           <div>
-            <h1 className="text-xl font-bold">AcadêmicaFlow</h1>
+            <h1 className="text-xl font-bold">DocTrack</h1>
             <p className="mt-0.5 text-sm text-muted">Gestão Documental</p>
           </div>
         </div>
